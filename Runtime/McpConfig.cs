@@ -14,14 +14,23 @@ namespace GameplayMcp
     /// </summary>
     public class McpConfig
     {
+        private string _listenPrefix;
+
         /// <summary>
         /// HTTP listener prefix.
+        /// <p/>
+        /// Defaults to the value of the <c>-gameplayMcpListenPrefix</c> command-line argument,
+        /// or <c>"http://+:8010/"</c> if the argument is not specified.
         /// <p/>
         /// Use wildcard prefix so HttpListener binds to both IPv4 and IPv6 interfaces.
         /// "localhost" binds IPv6-only on IL2CPP standalone builds, causing connection failures
         /// when MCP clients connect via IPv4 (127.0.0.1).
         /// </summary>
-        public string ListenPrefix { get; set; } = "http://+:8010/";
+        public string ListenPrefix
+        {
+            get => _listenPrefix ??= Internals.CommandLineArgs.GetListenPrefix();
+            set => _listenPrefix = value;
+        }
 
         /// <summary>
         /// <see cref="TestHelper.UI.GameObjectFinder"/> used to locate GameObjects.
