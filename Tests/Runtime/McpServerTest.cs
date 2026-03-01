@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using NUnit.Framework;
@@ -13,21 +15,27 @@ namespace GameplayMcp
 {
     /// <summary>
     /// Integration tests that connect to <see cref="McpServer"/> via the MCP client SDK.
-    /// Requires Play mode so that <see cref="McpServerBootstrap"/> starts the server automatically.
     /// </summary>
     [TestFixture]
+    [Timeout(5000)]
+    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
+    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP006:Implement IDisposable")]
     public class McpServerTest
     {
         private const string ServerEndpoint = "http://localhost:8010/mcp";
         private const int RetryCount = 10;
         private const int RetryDelayMilliseconds = 500;
 
+        private McpServer _server;
         private McpClient _client;
 
         [SetUp]
         public async Task SetUp()
         {
-            _client = await ConnectWithRetryAsync();
+            _server = new McpServer(new McpConfig());
+            _server.StartAsync().Forget();
+
+            _client = await ConnectAsync();
         }
 
         [TearDown]
@@ -38,6 +46,10 @@ namespace GameplayMcp
                 await _client.DisposeAsync();
                 _client = null;
             }
+
+            _server?.Stop();
+            _server?.Dispose();
+            _server = null;
         }
 
         [Test]
@@ -79,7 +91,7 @@ namespace GameplayMcp
             Assert.That(actual, Is.EqualTo(Expected));
         }
 
-        private static async Task<McpClient> ConnectWithRetryAsync()
+        private static async Task<McpClient> ConnectAsync()
         {
             Exception lastException = null;
             for (var i = 0; i < RetryCount; i++)

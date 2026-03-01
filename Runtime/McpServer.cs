@@ -8,6 +8,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using GameplayMcp.Tools;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
@@ -18,31 +19,30 @@ namespace GameplayMcp
 {
     /// <summary>
     /// MCP server using Streamable HTTP transport over HttpListener.
-    /// Listens on http://+:8010/ and handles POST, GET, and DELETE requests to /mcp.
+    /// Listens on the prefix specified by <see cref="McpConfig.ListenPrefix"/> and handles POST, GET, and DELETE requests to /mcp.
     /// </summary>
     public sealed class McpServer : IDisposable
     {
-        // Use wildcard prefix so HttpListener binds to both IPv4 and IPv6 interfaces.
-        // "localhost" binds IPv6-only on IL2CPP standalone builds, causing connection failures
-        // when MCP clients connect via IPv4 (127.0.0.1).
-        private const string ListenPrefix = "http://+:8010/";
         private const string McpPath = "/mcp";
 
+        private readonly McpConfig _config;
         private readonly HttpListener _listener;
+        private CancellationTokenSource _cts;
 
         private readonly ConcurrentDictionary<string, (StreamableHttpServerTransport Transport,
-                ModelContextProtocol.Server.McpServer Server)>
-            _sessions;
+            ModelContextProtocol.Server.McpServer Server)> _sessions;
 
         private readonly McpServerOptions _serverOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="McpServer"/> class.
         /// </summary>
-        public McpServer()
+        /// <param name="config">Configuration for the MCP server.</param>
+        public McpServer(McpConfig config)
         {
+            _config = config;
             _listener = new HttpListener();
-            _listener.Prefixes.Add(ListenPrefix);
+            _listener.Prefixes.Add(_config.ListenPrefix);
             _sessions =
                 new ConcurrentDictionary<string, (StreamableHttpServerTransport, ModelContextProtocol.Server.McpServer
                     )>();
@@ -58,18 +58,35 @@ namespace GameplayMcp
             };
         }
 
-        /// <summary>
-        /// Starts listening for MCP client requests on http://localhost:8010/.
-        /// Runs until the <paramref name="ct"/> is cancelled.
-        /// </summary>
-        /// <param name="ct">Cancellation token to stop the server.</param>
-        public async Task StartAsync(CancellationToken ct = default)
+        /// <inheritdoc/>
+        public void Dispose()
         {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+
+            _listener.Close();
+            foreach (var session in _sessions.Values)
+            {
+                session.Transport.DisposeAsync().GetAwaiter().GetResult();
+                ((IAsyncDisposable)session.Server).DisposeAsync().GetAwaiter().GetResult();
+            }
+        }
+
+        /// <summary>
+        /// Starts listening for MCP client requests on <see cref="McpConfig.ListenPrefix"/>.
+        /// </summary>
+        public async UniTask StartAsync()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+
             _listener.Start();
-            Debug.unityLogger.Log(this.GetType().Name,
-                "Listening on http://+:8010/ (IPv4: http://127.0.0.1:8010/, IPv6: http://[::1]:8010/)");
+            Debug.Log($"Gameplay MCP Server started. Listening on {_config.ListenPrefix}");
 
             // Stop the listener when cancellation is requested
+            var ct = _cts.Token;
             ct.Register(() => _listener.Stop());
 
             while (true)
@@ -89,13 +106,23 @@ namespace GameplayMcp
                 }
 
                 // Fire-and-forget: process request without blocking the accept loop
-                _ = HandleRequestAsync(context, ct);
+                HandleRequestAsync(context, ct).Forget();
             }
 
-            Debug.unityLogger.Log(this.GetType().Name, "stopped.");
+            Debug.Log("Gameplay MCP Server stopped.");
         }
 
-        private async Task HandleRequestAsync(HttpListenerContext context, CancellationToken ct)
+        /// <summary>
+        /// Stop listening for requests and dispose all active sessions.
+        /// </summary>
+        public void Stop()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+        }
+
+        private async UniTask HandleRequestAsync(HttpListenerContext context, CancellationToken ct)
         {
             var request = context.Request;
             var response = context.Response;
@@ -142,7 +169,7 @@ namespace GameplayMcp
             }
         }
 
-        private async Task HandlePostAsync(HttpListenerRequest request, HttpListenerResponse response,
+        private async UniTask HandlePostAsync(HttpListenerRequest request, HttpListenerResponse response,
             CancellationToken ct)
         {
             // Deserialize the request body as a JSON-RPC message
@@ -191,7 +218,7 @@ namespace GameplayMcp
                 response.ContentType = "text/event-stream";
                 response.Headers["Cache-Control"] = "no-cache";
                 memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(response.OutputStream);
+                await memoryStream.CopyToAsync(response.OutputStream, cancellationToken: ct);
             }
             else
             {
@@ -199,7 +226,7 @@ namespace GameplayMcp
             }
         }
 
-        private async Task HandleGetAsync(HttpListenerRequest request, HttpListenerResponse response,
+        private async UniTask HandleGetAsync(HttpListenerRequest request, HttpListenerResponse response,
             CancellationToken ct)
         {
             var sessionId = request.Headers["Mcp-Session-Id"];
@@ -227,17 +254,6 @@ namespace GameplayMcp
 
             response.StatusCode = 200;
             return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            _listener.Close();
-            foreach (var session in _sessions.Values)
-            {
-                session.Transport.DisposeAsync().GetAwaiter().GetResult();
-                ((IAsyncDisposable)session.Server).DisposeAsync().GetAwaiter().GetResult();
-            }
         }
     }
 }

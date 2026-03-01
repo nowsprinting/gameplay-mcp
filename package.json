@@ -6,7 +6,6 @@
   "category": "AI",
   "changelogUrl": "https://github.com/nowsprinting/gameplay-mcp/releases",
   "dependencies": {
-    "com.cysharp.unitask": "2.3.3",
     "com.nowsprinting.test-helper": "1.4.1",
     "com.nowsprinting.test-helper.ui": "1.2.2"
   },
