@@ -31,7 +31,7 @@ namespace GameplayMcp.Internals
 
             var actual = GameObjectSerializer.Serialize(sut);
 
-            Assert.That(actual, Does.Contain("/Parent/Child"));
+            Assert.That(actual, Does.Contain("\"path\":\"/Parent/Child\"").Or.Contain("\"path\": \"/Parent/Child\""));
         }
 
         [Test]

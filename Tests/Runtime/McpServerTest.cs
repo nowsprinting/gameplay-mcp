@@ -29,32 +29,17 @@ namespace GameplayMcp
         private McpServer _server;
         private McpClient _client;
 
-        [SetUp]
-        public async Task SetUp()
-        {
-            _server = new McpServer(new McpConfig());
-            _server.StartAsync().Forget();
-
-            _client = await ConnectAsync();
-        }
-
         [TearDown]
         public async Task TearDown()
         {
-            if (_client != null)
-            {
-                await _client.DisposeAsync();
-                _client = null;
-            }
-
-            _server?.Stop();
-            _server?.Dispose();
-            _server = null;
+            await StopConnectionAsync();
         }
 
         [Test]
         public async Task ListToolsAsync_ConnectToServer_ContainsEchoTool()
         {
+            await StartConnectionAsync();
+
             var actual = await _client.ListToolsAsync();
 
             Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "echo"));
@@ -63,6 +48,8 @@ namespace GameplayMcp
         [Test]
         public async Task ListToolsAsync_ConnectToServer_ContainsFindGameObjectTool()
         {
+            await StartConnectionAsync();
+
             var actual = await _client.ListToolsAsync();
 
             Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
@@ -71,15 +58,7 @@ namespace GameplayMcp
         [Test]
         public async Task ListToolsAsync_DisableFindGameObjectTool_NotContainsFindGameObjectTool()
         {
-            // Restart server with EnableFindGameObjectTool = false
-            await _client.DisposeAsync();
-            _client = null;
-            _server.Stop();
-            _server.Dispose();
-
-            _server = new McpServer(new McpConfig { EnableFindGameObjectTool = false });
-            _server.StartAsync().Forget();
-            _client = await ConnectAsync();
+            await StartConnectionAsync(new McpConfig { EnableFindGameObjectTool = false });
 
             var actual = await _client.ListToolsAsync();
 
@@ -89,6 +68,7 @@ namespace GameplayMcp
         [Test]
         public async Task CallToolAsync_EchoWithMessage_ReturnsTextContentWithSameMessage()
         {
+            await StartConnectionAsync();
             const string Expected = "Hello, MCP!";
 
             var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = Expected });
@@ -100,6 +80,8 @@ namespace GameplayMcp
         [Test]
         public async Task CallToolAsync_EchoWithEmptyString_ReturnsTextContentWithEmptyString()
         {
+            await StartConnectionAsync();
+
             var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = "" });
 
             var actual = result.Content.OfType<TextContentBlock>().First().Text;
@@ -109,12 +91,33 @@ namespace GameplayMcp
         [Test]
         public async Task CallToolAsync_EchoWithSpecialCharacters_ReturnsTextContentWithSameMessage()
         {
+            await StartConnectionAsync();
             const string Expected = "日本語テスト 🎮\n改行あり";
 
             var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = Expected });
 
             var actual = result.Content.OfType<TextContentBlock>().First().Text;
             Assert.That(actual, Is.EqualTo(Expected));
+        }
+
+        private async Task StartConnectionAsync(McpConfig config = null)
+        {
+            _server = new McpServer(config ?? new McpConfig());
+            _server.StartAsync().Forget();
+            _client = await ConnectAsync();
+        }
+
+        private async Task StopConnectionAsync()
+        {
+            if (_client != null)
+            {
+                await _client.DisposeAsync();
+                _client = null;
+            }
+
+            _server?.Stop();
+            _server?.Dispose();
+            _server = null;
         }
 
         private static async Task<McpClient> ConnectAsync()
