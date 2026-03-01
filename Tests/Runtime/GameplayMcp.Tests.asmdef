@@ -1,1 +1,29 @@
-{"allowUnsafeCode":false,"autoReferenced":false,"defineConstraints":["UNITY_INCLUDE_TESTS"],"excludePlatforms":[],"includePlatforms":[],"name":"GameplayMcp.Tests","noEngineReferences":false,"optionalUnityReferences":[],"overrideReferences":true,"precompiledReferences":["nunit.framework.dll"],"references":["UnityEngine.TestRunner","UnityEditor.TestRunner","GameplayMcp"],"rootNamespace":""}
+{
+    "name": "GameplayMcp.Tests",
+    "rootNamespace": "GameplayMcp",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "UniTask",
+        "GameplayMcp"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "Microsoft.Extensions.AI.Abstractions.dll",
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "ModelContextProtocol.Core.dll",
+        "ModelContextProtocol.dll",
+        "System.Text.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

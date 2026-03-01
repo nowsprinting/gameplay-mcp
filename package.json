@@ -10,7 +10,7 @@
     "com.nowsprinting.test-helper": "1.4.1",
     "com.nowsprinting.test-helper.ui": "1.2.2"
   },
-  "displayName": "Gameplay MCP Server",
+  "displayName": "Gameplay MCP",
   "documentationUrl": "https://nowsprinting.github.io/gameplay-mcp/",
   "files": [
     "Documentation~",
@@ -24,7 +24,11 @@
   ],
   "keywords": [
     "Unity",
-    "MCP"
+    "testing",
+    "integration tests",
+    "UI testing",
+    "MCP",
+    "AI"
   ],
   "license": "MIT",
   "licensesUrl": "https://github.com/nowsprinting/gameplay-mcp/blob/master/LICENSE.md",

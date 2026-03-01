@@ -1,1 +1,24 @@
-{"allowUnsafeCode":false,"autoReferenced":true,"defineConstraints":[],"excludePlatforms":[],"includePlatforms":[],"name":"GameplayMcp","noEngineReferences":false,"optionalUnityReferences":[],"overrideReferences":false,"precompiledReferences":[],"references":[],"rootNamespace":""}
+{
+    "name": "GameplayMcp",
+    "rootNamespace": "GameplayMcp",
+    "references": [
+        "TestHelper.UI",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "Microsoft.Extensions.AI.Abstractions.dll",
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "ModelContextProtocol.Core.dll",
+        "ModelContextProtocol.dll",
+        "System.Text.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
