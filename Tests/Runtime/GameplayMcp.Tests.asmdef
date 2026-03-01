@@ -5,7 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "UniTask",
-        "GameplayMcp"
+        "GameplayMcp",
+        "TestHelper"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

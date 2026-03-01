@@ -61,6 +61,32 @@ namespace GameplayMcp
         }
 
         [Test]
+        public async Task ListToolsAsync_ConnectToServer_ContainsFindGameObjectTool()
+        {
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_DisableFindGameObjectTool_NotContainsFindGameObjectTool()
+        {
+            // Restart server with EnableFindGameObjectTool = false
+            await _client.DisposeAsync();
+            _client = null;
+            _server.Stop();
+            _server.Dispose();
+
+            _server = new McpServer(new McpConfig { EnableFindGameObjectTool = false });
+            _server.StartAsync().Forget();
+            _client = await ConnectAsync();
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
+        }
+
+        [Test]
         public async Task CallToolAsync_EchoWithMessage_ReturnsTextContentWithSameMessage()
         {
             const string Expected = "Hello, MCP!";

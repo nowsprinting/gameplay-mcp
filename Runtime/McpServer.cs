@@ -50,6 +50,14 @@ namespace GameplayMcp
             var tools = new McpServerPrimitiveCollection<McpServerTool>();
             tools.Add(McpServerTool.Create(typeof(EchoTool).GetMethod(nameof(EchoTool.Echo))));
 
+            if (_config.EnableFindGameObjectTool)
+            {
+                var findGameObject = new FindGameObject(_config);
+                tools.Add(McpServerTool.Create(
+                    typeof(FindGameObject).GetMethod(nameof(FindGameObject.FindGameObjectTool)),
+                    findGameObject));
+            }
+
             _serverOptions = new McpServerOptions
             {
                 ServerInfo = new Implementation { Name = Application.productName, Version = Application.version },

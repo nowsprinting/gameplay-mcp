@@ -63,5 +63,10 @@ namespace GameplayMcp
         /// The only operator registered by default is <see cref="TestHelper.UI.Operators.UguiClickOperator"/>.
         /// </summary>
         public OperatorPool OperatorPool { get; set; } = new OperatorPool().Register<UguiClickOperator>();
+
+        /// <summary>
+        /// Whether to register the find_gameobject tool.
+        /// </summary>
+        public bool EnableFindGameObjectTool { get; set; } = true;
     }
 }
