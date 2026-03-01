@@ -1,0 +1,36 @@
+{
+  "name": "com.nowsprinting.gameplay-mcp",
+  "description": "Model context protocol (MCP) server for gameplay. Provides tools that AI models play your game via the MCP by embedding in your runtime (player build).",
+  "version": "0.1.0",
+  "author": "Koji Hasegawa <hasegawa@hubsys.co.jp> (https://github.com/nowsprinting)",
+  "category": "AI",
+  "changelogUrl": "https://github.com/nowsprinting/gameplay-mcp/releases",
+  "dependencies": {
+    "com.cysharp.unitask": "2.3.3",
+    "com.nowsprinting.test-helper": "1.4.1",
+    "com.nowsprinting.test-helper.ui": "1.2.2"
+  },
+  "displayName": "Gameplay MCP Server",
+  "documentationUrl": "https://nowsprinting.github.io/gameplay-mcp/",
+  "files": [
+    "Documentation~",
+    "Runtime/",
+    "Runtime.meta",
+    "Tests/",
+    "Tests.meta",
+    "LICENSE.txt*",
+    "package.json*",
+    "README.md*"
+  ],
+  "keywords": [
+    "Unity",
+    "MCP"
+  ],
+  "license": "MIT",
+  "licensesUrl": "https://github.com/nowsprinting/gameplay-mcp/blob/master/LICENSE.md",
+  "repository": "https://github.com/nowsprinting/gameplay-mcp",
+  "samples": [
+  ],
+  "unity": "2023.1",
+  "unityRelease": "0f1"
+}

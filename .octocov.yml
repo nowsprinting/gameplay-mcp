@@ -1,0 +1,38 @@
+# see https://github.com/k1LoW/octocov
+coverage:
+  if: true
+  paths:
+    - UnityProject~/Logs/Report/lcov.info # Warning: This path is to be replaced by regex in test.yml
+
+codeToTestRatio:
+  code:
+    - '**/*.cs'
+    - '!**/Tests/**'
+    - '!UnityProject~/Library/**'
+    - '!Library/**'
+  test:
+    - '**/Tests/**/*.cs'
+    - '!UnityProject~/Library/**'
+    - '!Library/**'
+
+testExecutionTime:
+  if: true
+
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+
+# Comment report to pull request
+comment:
+  if: is_pull_request
+
+# Add report to job summary page
+summary:
+  if: true
+
+# Store report to artifact
+report:
+  if: is_default_branch
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+    - bq://test-results-473823/test_helper/octocov
