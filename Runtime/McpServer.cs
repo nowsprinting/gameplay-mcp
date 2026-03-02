@@ -159,6 +159,12 @@ namespace GameplayMcp
                         break;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Expected during shutdown; no action needed.
+                // Not re-thrown because HandleRequestAsync is called via .Forget(), so there is no caller to receive it.
+                // Swallowing here allows the finally block to close the response cleanly.
+            }
             catch (Exception e)
             {
                 Debug.LogException(e);
