@@ -15,19 +15,9 @@ namespace GameplayMcp.Tools
     /// <summary>
     /// MCP tool that finds a GameObject by name, path, text, or texture and returns its component information as JSON.
     /// </summary>
+    [McpServerToolType]
     public class FindGameObject
     {
-        private readonly McpConfig _config;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FindGameObject"/> class.
-        /// </summary>
-        /// <param name="config">Configuration for the MCP server.</param>
-        public FindGameObject(McpConfig config)
-        {
-            _config = config;
-        }
-
         /// <summary>
         /// Finds a GameObject by name, path, text label, or texture name and returns its component information as JSON.
         /// </summary>
@@ -40,7 +30,7 @@ namespace GameplayMcp.Tools
         /// <returns>JSON string with the found GameObject's name, path, and component details, or an exception message if not found.</returns>
         [McpServerTool(Name = "find_gameobject", ReadOnly = true, Destructive = false)]
         [Description("Finds a GameObject by name, path, text label, or texture and returns its component properties as JSON.")]
-        public async Task<string> FindGameObjectTool(
+        public static async Task<string> FindGameObjectTool(
             [Description("Hierarchy path separated by '/'. Supports glob wildcards (?, *, **).")]
             string path = null,
             [Description("GameObject name.")]
@@ -57,13 +47,15 @@ namespace GameplayMcp.Tools
 
             try
             {
+                var config = McpServer.Instance.Config;
+
                 // Use ButtonMatcher when text or texture is given; ComponentMatcher otherwise.
                 // ButtonMatcher requires a Button component, while ComponentMatcher matches any Component (typeof(Component)).
                 var matcher = (text != null || texture != null)
                     ? (IGameObjectMatcher)new ButtonMatcher(name: name, path: path, text: text, texture: texture)
                     : new ComponentMatcher(name: name, path: path);
 
-                var result = await _config.GameObjectFinder.FindByMatcherAsync(
+                var result = await config.GameObjectFinder.FindByMatcherAsync(
                     matcher,
                     reachable: reachable,
                     cancellationToken: cancellationToken);

@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using GameplayMcp.Tools;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -25,7 +26,18 @@ namespace GameplayMcp
     {
         private const string McpPath = "/mcp";
 
-        private readonly McpConfig _config;
+        /// <summary>
+        /// The currently active <see cref="McpServer"/> instance.
+        /// Set when a new instance is constructed and cleared when it is disposed.
+        /// Tool methods access configuration via this property.
+        /// </summary>
+        public static McpServer Instance { get; private set; }
+
+        /// <summary>
+        /// Configuration for this server instance.
+        /// </summary>
+        public McpConfig Config { get; }
+
         private readonly HttpListener _listener;
         private CancellationTokenSource _cts;
 
@@ -40,54 +52,15 @@ namespace GameplayMcp
         /// <param name="config">Configuration for the MCP server.</param>
         public McpServer(McpConfig config)
         {
-            _config = config;
+            Instance = this;
+            Config = config;
             _listener = new HttpListener();
-            _listener.Prefixes.Add(_config.ListenPrefix);
+            _listener.Prefixes.Add(Config.ListenPrefix);
             _sessions =
                 new ConcurrentDictionary<string, (StreamableHttpServerTransport, ModelContextProtocol.Server.McpServer
                     )>();
 
-            var tools = new McpServerPrimitiveCollection<McpServerTool>();
-
-            if (_config.EnableFindGameObjectTool)
-            {
-                var findGameObject = new FindGameObject(_config);
-                tools.Add(McpServerTool.Create(
-                    typeof(FindGameObject).GetMethod(nameof(FindGameObject.FindGameObjectTool)),
-                    findGameObject));
-            }
-
-            if (_config.EnableGetAvailableTargetOperatorsTool)
-            {
-                var getAvailableTargetOperators = new GetAvailableTargetOperators(_config);
-                tools.Add(McpServerTool.Create(
-                    typeof(GetAvailableTargetOperators).GetMethod(nameof(GetAvailableTargetOperators.GetAvailableTargetOperatorsTool)),
-                    getAvailableTargetOperators));
-            }
-
-            if (_config.EnableTakeScreenshotTool)
-            {
-                var takeScreenshot = new TakeScreenshot();
-                tools.Add(McpServerTool.Create(
-                    typeof(TakeScreenshot).GetMethod(nameof(TakeScreenshot.TakeScreenshotTool)),
-                    takeScreenshot));
-            }
-
-            if (_config.EnableGetScenesTool)
-            {
-                var getScenes = new GetScenes();
-                tools.Add(McpServerTool.Create(
-                    typeof(GetScenes).GetMethod(nameof(GetScenes.GetScenesTool)),
-                    getScenes));
-            }
-
-            if (_config.EnableOperateTool)
-            {
-                var operate = new Operate(_config);
-                tools.Add(McpServerTool.Create(
-                    typeof(Operate).GetMethod(nameof(Operate.OperateTool)),
-                    operate));
-            }
+            var tools = ScanToolsFromAssemblies();
 
             _serverOptions = new McpServerOptions
             {
@@ -95,6 +68,55 @@ namespace GameplayMcp
                 Capabilities = new ServerCapabilities { Tools = new ToolsCapability() },
                 ToolCollection = tools,
             };
+
+            if (Config.DisabledTools.Count > 0)
+            {
+                var disabled = Config.DisabledTools;
+                _serverOptions.Filters.Request.ListToolsFilters.Add(next => async (request, ct) =>
+                {
+                    var result = await next(request, ct);
+                    result.Tools = result.Tools.Where(t => !disabled.Contains(t.Name)).ToList();
+                    return result;
+                });
+            }
+        }
+
+        // WithToolsFromAssembly (IMcpServerBuilder extension) requires the DI container (IMcpServerBuilder),
+        // which is not used in this project. Replicate its assembly-scanning logic here instead.
+        private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies()
+        {
+            var tools = new McpServerPrimitiveCollection<McpServerTool>();
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    types = e.Types.Where(t => t != null).ToArray();
+                }
+
+                foreach (var type in types)
+                {
+                    if (type.GetCustomAttribute<McpServerToolTypeAttribute>() == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
+                    {
+                        if (method.GetCustomAttribute<McpServerToolAttribute>() != null)
+                        {
+                            tools.Add(McpServerTool.Create(method, (object)null));
+                        }
+                    }
+                }
+            }
+
+            return tools;
         }
 
         /// <inheritdoc/>
@@ -110,6 +132,8 @@ namespace GameplayMcp
                 session.Transport.DisposeAsync().GetAwaiter().GetResult();
                 ((IAsyncDisposable)session.Server).DisposeAsync().GetAwaiter().GetResult();
             }
+
+            Instance = null;
         }
 
         /// <summary>
@@ -122,7 +146,7 @@ namespace GameplayMcp
             _cts = new CancellationTokenSource();
 
             _listener.Start();
-            Debug.Log($"Gameplay MCP Server started. Listening on {_config.ListenPrefix}");
+            Debug.Log($"Gameplay MCP Server started. Listening on {Config.ListenPrefix}");
 
             // Stop the listener when cancellation is requested
             var ct = _cts.Token;

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Koji Hasegawa.
 // This software is released under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TestHelper.Attributes;
@@ -10,8 +11,19 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
+    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
     public class GetAvailableTargetOperatorsTest
     {
+        private McpServer _server;
+
+        [TearDown]
+        public void TearDown()
+        {
+            _server?.Stop();
+            _server?.Dispose();
+            _server = null;
+        }
+
         [Test]
         [CreateScene]
         public async Task GetAvailableTargetOperatorsTool_WithInteractableButton_ReturnsJsonContainingTargetAndOperators()
@@ -25,9 +37,9 @@ namespace GameplayMcp.Tools
             var eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            var sut = new GetAvailableTargetOperators(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.GetAvailableTargetOperatorsTool(reachable: false);
+            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false);
 
             Assert.That(actual, Does.Contain("StartButton").And.Contain("operators"));
         }
@@ -49,9 +61,9 @@ namespace GameplayMcp.Tools
             var eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            var sut = new GetAvailableTargetOperators(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.GetAvailableTargetOperatorsTool(reachable: false);
+            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false);
 
             Assert.That(actual, Does.Contain("Start"));
         }
@@ -60,9 +72,9 @@ namespace GameplayMcp.Tools
         [CreateScene]
         public async Task GetAvailableTargetOperatorsTool_NoInteractableComponents_ReturnsNoOperableMessage()
         {
-            var sut = new GetAvailableTargetOperators(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.GetAvailableTargetOperatorsTool(reachable: false);
+            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false);
 
             Assert.That(actual, Does.Not.StartWith("["));
         }
@@ -85,9 +97,9 @@ namespace GameplayMcp.Tools
             var eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            var sut = new GetAvailableTargetOperators(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.GetAvailableTargetOperatorsTool(reachable: false);
+            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false);
 
             Assert.That(actual, Does.Contain("HiddenButton"));
         }

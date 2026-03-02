@@ -48,7 +48,9 @@ namespace GameplayMcp
         [Test]
         public async Task ListToolsAsync_DisableGetScenesTool_NotContainsGetScenesTool()
         {
-            await StartConnectionAsync(new McpConfig { EnableGetScenesTool = false });
+            var config = new McpConfig();
+            config.DisabledTools.Add("get_scenes");
+            await StartConnectionAsync(config);
 
             var actual = await _client.ListToolsAsync();
 
@@ -66,16 +68,6 @@ namespace GameplayMcp
         }
 
         [Test]
-        public async Task ListToolsAsync_DisableFindGameObjectTool_NotContainsFindGameObjectTool()
-        {
-            await StartConnectionAsync(new McpConfig { EnableFindGameObjectTool = false });
-
-            var actual = await _client.ListToolsAsync();
-
-            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
-        }
-
-        [Test]
         public async Task ListToolsAsync_ConnectToServer_ContainsTakeScreenshotTool()
         {
             await StartConnectionAsync();
@@ -83,16 +75,6 @@ namespace GameplayMcp
             var actual = await _client.ListToolsAsync();
 
             Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
-        }
-
-        [Test]
-        public async Task ListToolsAsync_DisableTakeScreenshotTool_NotContainsTakeScreenshotTool()
-        {
-            await StartConnectionAsync(new McpConfig { EnableTakeScreenshotTool = false });
-
-            var actual = await _client.ListToolsAsync();
-
-            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
         }
 
         [Test]

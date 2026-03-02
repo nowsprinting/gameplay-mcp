@@ -16,6 +16,7 @@ namespace GameplayMcp.Tools
     /// <summary>
     /// MCP tool that captures the current game screen and returns it as an image.
     /// </summary>
+    [McpServerToolType]
     public class TakeScreenshot
     {
         /// <summary>
@@ -28,7 +29,7 @@ namespace GameplayMcp.Tools
         /// <returns>ImageContentBlock on success, TextContentBlock with error message on failure.</returns>
         [McpServerTool(Name = "take_screenshot", ReadOnly = true, Destructive = false)]
         [Description("Captures the current game screen and returns it as an image.")]
-        public async Task<ContentBlock> TakeScreenshotTool(
+        public static async Task<ContentBlock> TakeScreenshotTool(
             [Description("Image format: \"jpeg\" (default) or \"png\".")]
             string format = "jpeg",
             [Description("Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to 1568.")]

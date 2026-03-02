@@ -20,19 +20,9 @@ namespace GameplayMcp.Tools
     /// <summary>
     /// MCP tool that returns a list of operable GameObjects and their operators as JSON.
     /// </summary>
+    [McpServerToolType]
     public class GetAvailableTargetOperators
     {
-        private readonly McpConfig _config;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GetAvailableTargetOperators"/> class.
-        /// </summary>
-        /// <param name="config">Configuration for the MCP server.</param>
-        public GetAvailableTargetOperators(McpConfig config)
-        {
-            _config = config;
-        }
-
         /// <summary>
         /// Returns a list of operable GameObjects and their available operators as JSON.
         /// </summary>
@@ -41,7 +31,7 @@ namespace GameplayMcp.Tools
         /// <returns>JSON string with operable targets and their operators, or a message if none are found.</returns>
         [McpServerTool(Name = "get_available_target_operators", ReadOnly = true, Destructive = false)]
         [Description("Returns a list of operable GameObjects and their available operators as JSON.")]
-        public async Task<string> GetAvailableTargetOperatorsTool(
+        public static async Task<string> GetAvailableTargetOperatorsTool(
             [Description("If true (default), only reachable GameObjects are included.")]
             bool reachable = true,
             CancellationToken cancellationToken = default)
@@ -50,13 +40,14 @@ namespace GameplayMcp.Tools
 
             try
             {
-                var pairs = _config.InteractableComponentsFinder.FindInteractableComponentsAndOperators().ToList();
+                var config = McpServer.Instance.Config;
+                var pairs = config.InteractableComponentsFinder.FindInteractableComponentsAndOperators().ToList();
 
                 IEnumerable<(UnityEngine.MonoBehaviour, IOperator)> filteredPairs = pairs;
                 if (reachable)
                 {
                     filteredPairs = pairs.Where(pair =>
-                        _config.ReachableStrategy.IsReachable(pair.Item1.gameObject, out _));
+                        config.ReachableStrategy.IsReachable(pair.Item1.gameObject, out _));
                 }
 
                 var entries = filteredPairs

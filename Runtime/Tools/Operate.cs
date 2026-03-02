@@ -22,6 +22,7 @@ namespace GameplayMcp.Tools
     /// <summary>
     /// MCP tool that finds a reachable GameObject and executes the specified operator on it.
     /// </summary>
+    [McpServerToolType]
     public class Operate
     {
         // Excluded by parameter name, not type, so that additional GameObject parameters
@@ -30,17 +31,6 @@ namespace GameplayMcp.Tools
         {
             "gameObject", "raycastResult", "cancellationToken"
         };
-
-        private readonly McpConfig _config;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Operate"/> class.
-        /// </summary>
-        /// <param name="config">Configuration for the MCP server.</param>
-        public Operate(McpConfig config)
-        {
-            _config = config;
-        }
 
         /// <summary>
         /// Finds a reachable GameObject and executes the specified operator on it.
@@ -55,7 +45,7 @@ namespace GameplayMcp.Tools
         /// <returns>Success message, or an error message if the operation fails.</returns>
         [McpServerTool(Name = "operate", ReadOnly = false, Destructive = false)]
         [Description("Finds a reachable GameObject and executes the specified operator on it.")]
-        public async Task<string> OperateTool(
+        public static async Task<string> OperateTool(
             [Description("Concrete operator class name (e.g., \"UguiClickOperator\").")]
             string operatorName,
             [Description("Hierarchy path separated by '/'. Supports glob wildcards (?, *, **).")]
@@ -86,6 +76,7 @@ namespace GameplayMcp.Tools
         {
             await UniTask.SwitchToMainThread(cancellationToken);
 
+            var config = McpServer.Instance.Config;
             IOperator targetOperator = null;
             try
             {
@@ -108,7 +99,7 @@ namespace GameplayMcp.Tools
                 }
 
                 // Step 2: Rent the operator from the pool
-                targetOperator = _config.OperatorPool.Rent(operatorType);
+                targetOperator = config.OperatorPool.Rent(operatorType);
 
                 // Step 3: Find the target GameObject (reachable forced to true)
                 // Use ButtonMatcher when text or texture is given; ComponentMatcher otherwise.
@@ -117,7 +108,7 @@ namespace GameplayMcp.Tools
                     ? (IGameObjectMatcher)new ButtonMatcher(name: name, path: path, text: text, texture: texture)
                     : new ComponentMatcher(name: name, path: path);
 
-                var findResult = await _config.GameObjectFinder.FindByMatcherAsync(
+                var findResult = await config.GameObjectFinder.FindByMatcherAsync(
                     matcher,
                     reachable: true,
                     cancellationToken: cancellationToken);
@@ -146,7 +137,7 @@ namespace GameplayMcp.Tools
                     return $"No matching OperateAsync overload for '{operatorName}' with arguments '{operatorArgs}'. Available overload parameters:{paramInfo}";
                 }
 
-                var invokeArgs = await BuildArgsAsync(selectedOverload, findResult.GameObject, findResult.RaycastResult, jsonArgs, cancellationToken);
+                var invokeArgs = await BuildArgsAsync(selectedOverload, findResult.GameObject, findResult.RaycastResult, jsonArgs, config, cancellationToken);
                 await (UniTask)selectedOverload.Invoke(targetOperator, invokeArgs);
 
                 return $"Operated '{operatorName}' on '{findResult.GameObject.name}'.";
@@ -159,12 +150,12 @@ namespace GameplayMcp.Tools
             {
                 if (targetOperator != null)
                 {
-                    _config.OperatorPool.Return(targetOperator);
+                    config.OperatorPool.Return(targetOperator);
                 }
             }
         }
 
-        private MethodInfo SelectOverload(MethodInfo[] overloads, Dictionary<string, JsonElement> jsonArgs)
+        private static MethodInfo SelectOverload(MethodInfo[] overloads, Dictionary<string, JsonElement> jsonArgs)
         {
             if (jsonArgs == null || jsonArgs.Count == 0)
             {
@@ -188,13 +179,13 @@ namespace GameplayMcp.Tools
             });
         }
 
-        private IEnumerable<ParameterInfo> ExtraParams(MethodInfo method)
+        private static IEnumerable<ParameterInfo> ExtraParams(MethodInfo method)
         {
             return method.GetParameters().Where(p => !FixedParamNames.Contains(p.Name));
         }
 
-        private async UniTask<object[]> BuildArgsAsync(MethodInfo method, GameObject gameObject,
-            RaycastResult raycastResult, Dictionary<string, JsonElement> jsonArgs, CancellationToken ct)
+        private static async UniTask<object[]> BuildArgsAsync(MethodInfo method, GameObject gameObject,
+            RaycastResult raycastResult, Dictionary<string, JsonElement> jsonArgs, McpConfig config, CancellationToken ct)
         {
             var parameters = method.GetParameters();
             var args = new object[parameters.Length];
@@ -217,7 +208,7 @@ namespace GameplayMcp.Tools
                 }
                 else if (jsonArgs != null && jsonArgs.TryGetValue(param.Name, out var jsonValue))
                 {
-                    args[i] = await ConvertJsonValueAsync(jsonValue, param.ParameterType, ct);
+                    args[i] = await ConvertJsonValueAsync(jsonValue, param.ParameterType, config, ct);
                 }
                 else if (param.HasDefaultValue)
                 {
@@ -228,7 +219,7 @@ namespace GameplayMcp.Tools
             return args;
         }
 
-        private async UniTask<object> ConvertJsonValueAsync(JsonElement jsonValue, Type targetType, CancellationToken ct)
+        private static async UniTask<object> ConvertJsonValueAsync(JsonElement jsonValue, Type targetType, McpConfig config, CancellationToken ct)
         {
             if (targetType == typeof(int)) return jsonValue.GetInt32();
             if (targetType == typeof(float)) return (float)jsonValue.GetDouble();
@@ -260,14 +251,14 @@ namespace GameplayMcp.Tools
                 var matcher = (goText != null || goTexture != null)
                     ? (IGameObjectMatcher)new ButtonMatcher(name: goName, path: goPath, text: goText, texture: goTexture)
                     : new ComponentMatcher(name: goName, path: goPath);
-                var result = await _config.GameObjectFinder.FindByMatcherAsync(matcher, reachable: true, cancellationToken: ct);
+                var result = await config.GameObjectFinder.FindByMatcherAsync(matcher, reachable: true, cancellationToken: ct);
                 return result.GameObject;
             }
 
             throw new InvalidOperationException($"Cannot convert JSON value to type '{targetType.Name}'.");
         }
 
-        private string BuildOverloadParamInfo(MethodInfo[] overloads)
+        private static string BuildOverloadParamInfo(MethodInfo[] overloads)
         {
             var sb = new StringBuilder();
             foreach (var method in overloads)

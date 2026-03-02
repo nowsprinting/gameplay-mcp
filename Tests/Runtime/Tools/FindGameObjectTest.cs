@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Koji Hasegawa.
 // This software is released under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TestHelper.Attributes;
@@ -10,17 +11,28 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
+    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
     public class FindGameObjectTest
     {
+        private McpServer _server;
+
+        [TearDown]
+        public void TearDown()
+        {
+            _server?.Stop();
+            _server?.Dispose();
+            _server = null;
+        }
+
         [Test]
         [CreateScene]
         public async Task FindGameObjectTool_ByName_ReturnsJsonContainingName()
         {
             var go = new GameObject("TargetObject");
             go.AddComponent<Canvas>(); // needs Canvas to be reachable via raycasting, but for name search we skip reachable
-            var sut = new FindGameObject(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.FindGameObjectTool(name: "TargetObject", reachable: false);
+            var actual = await FindGameObject.FindGameObjectTool(name: "TargetObject", reachable: false);
 
             Assert.That(actual, Does.Contain("TargetObject"));
         }
@@ -32,9 +44,9 @@ namespace GameplayMcp.Tools
             var parent = new GameObject("ParentObj");
             var child = new GameObject("ChildObj");
             child.transform.SetParent(parent.transform);
-            var sut = new FindGameObject(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.FindGameObjectTool(path: "/ParentObj/ChildObj", reachable: false);
+            var actual = await FindGameObject.FindGameObjectTool(path: "/ParentObj/ChildObj", reachable: false);
 
             Assert.That(actual, Does.Contain("/ParentObj/ChildObj"));
         }
@@ -53,9 +65,9 @@ namespace GameplayMcp.Tools
             textGo.transform.SetParent(buttonGo.transform);
             var textComp = textGo.AddComponent<Text>();
             textComp.text = "Start";
-            var sut = new FindGameObject(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.FindGameObjectTool(text: "Start", reachable: false);
+            var actual = await FindGameObject.FindGameObjectTool(text: "Start", reachable: false);
 
             Assert.That(actual, Does.Contain("Button"));
         }
@@ -64,9 +76,9 @@ namespace GameplayMcp.Tools
         [CreateScene]
         public async Task FindGameObjectTool_NotFound_ReturnsExceptionMessage()
         {
-            var sut = new FindGameObject(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.FindGameObjectTool(name: "NonExistentGameObject_12345", reachable: false);
+            var actual = await FindGameObject.FindGameObjectTool(name: "NonExistentGameObject_12345", reachable: false);
 
             Assert.That(actual, Does.Contain("Exception").Or.Contain("not found").Or.Contain("TimeoutException"));
         }

@@ -2,6 +2,7 @@
 // This software is released under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using TestHelper.UI;
 using TestHelper.UI.Operators;
 using TestHelper.UI.Strategies;
@@ -65,33 +66,16 @@ namespace GameplayMcp
         public OperatorPool OperatorPool { get; set; } = new OperatorPool().Register<UguiClickOperator>();
 
         /// <summary>
-        /// Whether to register the find_gameobject tool.
-        /// </summary>
-        public bool EnableFindGameObjectTool { get; set; } = true;
-
-        /// <summary>
         /// <see cref="IReachableStrategy"/> used to check whether a <c>GameObject</c> is reachable from the user.
         /// </summary>
         public IReachableStrategy ReachableStrategy { get; set; } = new DefaultReachableStrategy();
 
         /// <summary>
-        /// Whether to register the get_available_target_operators tool.
+        /// Tool names to hide from clients' tools/list responses.
+        /// Tools in this set are still registered in ToolCollection but excluded from listing.
+        /// MCP clients typically only call tools discovered via tools/list, so hiding effectively disables them.
+        /// For example, if you add a tool that returns the game state, you can use it to hide the `get_scenes` tool.
         /// </summary>
-        public bool EnableGetAvailableTargetOperatorsTool { get; set; } = true;
-
-        /// <summary>
-        /// Whether to register the take_screenshot tool.
-        /// </summary>
-        public bool EnableTakeScreenshotTool { get; set; } = true;
-
-        /// <summary>
-        /// Whether to register the get_scenes tool.
-        /// </summary>
-        public bool EnableGetScenesTool { get; set; } = true;
-
-        /// <summary>
-        /// Whether to register the operate tool.
-        /// </summary>
-        public bool EnableOperateTool { get; set; } = true;
+        public HashSet<string> DisabledTools { get; } = new HashSet<string>();
     }
 }

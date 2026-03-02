@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Koji Hasegawa.
 // This software is released under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TestHelper.Attributes;
@@ -12,9 +13,20 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
+    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
     public class OperateTest
     {
         private const string ButtonName = "TestButton";
+
+        private McpServer _server;
+
+        [TearDown]
+        public void TearDown()
+        {
+            _server?.Stop();
+            _server?.Dispose();
+            _server = null;
+        }
 
         private GameObject CreateCanvas()
         {
@@ -39,23 +51,22 @@ namespace GameplayMcp.Tools
             eventSystemGo.AddComponent<StandaloneInputModule>();
         }
 
-        private (McpConfig config, SpyOperatorWithoutOverload spy) CreateConfigWithSpyWithoutOverload(
-            bool canOperate = true)
+        private McpConfig CreateConfigWithSpyWithoutOverload(out SpyOperatorWithoutOverload spy, bool canOperate = true)
         {
-            var spy = new SpyOperatorWithoutOverload { CanOperateResult = canOperate };
+            spy = new SpyOperatorWithoutOverload { CanOperateResult = canOperate };
             var pool = new OperatorPool().Register<SpyOperatorWithoutOverload>();
             // Pre-populate the pool so Rent returns our spy instance
             pool.Return(spy);
-            return (new McpConfig { OperatorPool = pool }, spy);
+            return new McpConfig { OperatorPool = pool };
         }
 
-        private (McpConfig config, SpyOperatorWithOverload spy) CreateConfigWithSpyWithOverload()
+        private McpConfig CreateConfigWithSpyWithOverload(out SpyOperatorWithOverload spy)
         {
-            var spy = new SpyOperatorWithOverload();
+            spy = new SpyOperatorWithOverload();
             var pool = new OperatorPool().Register<SpyOperatorWithOverload>();
             // Pre-populate the pool so Rent returns our spy instance
             pool.Return(spy);
-            return (new McpConfig { OperatorPool = pool }, spy);
+            return new McpConfig { OperatorPool = pool };
         }
 
         [Test]
@@ -64,10 +75,10 @@ namespace GameplayMcp.Tools
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
-            var (config, spy) = CreateConfigWithSpyWithoutOverload();
-            var sut = new Operate(config);
+            var config = CreateConfigWithSpyWithoutOverload(out var spy);
+            _server = new McpServer(config);
 
-            await sut.OperateTool(
+            await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName);
 
@@ -80,10 +91,10 @@ namespace GameplayMcp.Tools
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
-            var (config, spy) = CreateConfigWithSpyWithOverload();
-            var sut = new Operate(config);
+            var config = CreateConfigWithSpyWithOverload(out var spy);
+            _server = new McpServer(config);
 
-            await sut.OperateTool(
+            await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
                 operatorArgs: "{\"text\": \"hello\"}");
@@ -97,10 +108,10 @@ namespace GameplayMcp.Tools
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
-            var (config, spy) = CreateConfigWithSpyWithOverload();
-            var sut = new Operate(config);
+            var config = CreateConfigWithSpyWithOverload(out var spy);
+            _server = new McpServer(config);
 
-            await sut.OperateTool(
+            await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
                 operatorArgs: null);
@@ -112,9 +123,9 @@ namespace GameplayMcp.Tools
         [CreateScene]
         public async Task OperateTool_WithUnregisteredOperator_ReturnsError()
         {
-            var sut = new Operate(new McpConfig());
+            _server = new McpServer(new McpConfig());
 
-            var actual = await sut.OperateTool(operatorName: "NonExistentOperator_12345");
+            var actual = await Operate.OperateTool(operatorName: "NonExistentOperator_12345");
 
             Assert.That(actual, Does.Contain("NonExistentOperator_12345"));
         }
@@ -125,10 +136,10 @@ namespace GameplayMcp.Tools
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
-            var (config, _) = CreateConfigWithSpyWithoutOverload(canOperate: false);
-            var sut = new Operate(config);
+            var config = CreateConfigWithSpyWithoutOverload(out _, canOperate: false);
+            _server = new McpServer(config);
 
-            var actual = await sut.OperateTool(
+            var actual = await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName);
 
@@ -141,10 +152,10 @@ namespace GameplayMcp.Tools
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
-            var (config, _) = CreateConfigWithSpyWithoutOverload();
-            var sut = new Operate(config);
+            var config = CreateConfigWithSpyWithoutOverload(out _);
+            _server = new McpServer(config);
 
-            var actual = await sut.OperateTool(
+            var actual = await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName,
                 operatorArgs: "{\"nonExistentParam\": 42}");
