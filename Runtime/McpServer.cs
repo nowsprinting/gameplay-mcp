@@ -81,6 +81,14 @@ namespace GameplayMcp
                     getScenes));
             }
 
+            if (_config.EnableOperateTool)
+            {
+                var operate = new Operate(_config);
+                tools.Add(McpServerTool.Create(
+                    typeof(Operate).GetMethod(nameof(Operate.OperateTool)),
+                    operate));
+            }
+
             _serverOptions = new McpServerOptions
             {
                 ServerInfo = new Implementation { Name = Application.productName, Version = Application.version },

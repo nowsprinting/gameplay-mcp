@@ -88,5 +88,10 @@ namespace GameplayMcp
         /// Whether to register the get_scenes tool.
         /// </summary>
         public bool EnableGetScenesTool { get; set; } = true;
+
+        /// <summary>
+        /// Whether to register the operate tool.
+        /// </summary>
+        public bool EnableOperateTool { get; set; } = true;
     }
 }
