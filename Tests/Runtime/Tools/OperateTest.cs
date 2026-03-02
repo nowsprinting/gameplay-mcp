@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Koji Hasegawa.
 // This software is released under the MIT License.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TestHelper.Attributes;
@@ -13,20 +12,9 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
     public class OperateTest
     {
         private const string ButtonName = "TestButton";
-
-        private McpServer _server;
-
-        [TearDown]
-        public void TearDown()
-        {
-            _server?.Stop();
-            _server?.Dispose();
-            _server = null;
-        }
 
         private GameObject CreateCanvas()
         {
@@ -76,11 +64,11 @@ namespace GameplayMcp.Tools
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out var spy);
-            _server = new McpServer(config);
 
             await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
-                name: ButtonName);
+                name: ButtonName,
+                config: config);
 
             Assert.That(spy.WasOperateCalled, Is.True);
         }
@@ -92,12 +80,12 @@ namespace GameplayMcp.Tools
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithOverload(out var spy);
-            _server = new McpServer(config);
 
             await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
-                operatorArgs: "{\"text\": \"hello\"}");
+                operatorArgs: "{\"text\": \"hello\"}",
+                config: config);
 
             Assert.That(spy.WasOverloadOperateCalled, Is.True);
         }
@@ -109,12 +97,12 @@ namespace GameplayMcp.Tools
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithOverload(out var spy);
-            _server = new McpServer(config);
 
             await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
-                operatorArgs: null);
+                operatorArgs: null,
+                config: config);
 
             Assert.That(spy.WasBaseOperateCalled, Is.True);
         }
@@ -123,9 +111,7 @@ namespace GameplayMcp.Tools
         [CreateScene]
         public async Task OperateTool_WithUnregisteredOperator_ReturnsError()
         {
-            _server = new McpServer(new McpConfig());
-
-            var actual = await Operate.OperateTool(operatorName: "NonExistentOperator_12345");
+            var actual = await Operate.OperateTool(operatorName: "NonExistentOperator_12345", config: new McpConfig());
 
             Assert.That(actual, Does.Contain("NonExistentOperator_12345"));
         }
@@ -137,11 +123,11 @@ namespace GameplayMcp.Tools
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out _, canOperate: false);
-            _server = new McpServer(config);
 
             var actual = await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
-                name: ButtonName);
+                name: ButtonName,
+                config: config);
 
             Assert.That(actual, Does.Contain(nameof(SpyOperatorWithoutOverload)));
         }
@@ -153,12 +139,12 @@ namespace GameplayMcp.Tools
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out _);
-            _server = new McpServer(config);
 
             var actual = await Operate.OperateTool(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName,
-                operatorArgs: "{\"nonExistentParam\": 42}");
+                operatorArgs: "{\"nonExistentParam\": 42}",
+                config: config);
 
             Assert.That(actual, Does.Contain("nonExistentParam").Or.Contain("OperateAsync").Or.Contain("parameter"));
         }

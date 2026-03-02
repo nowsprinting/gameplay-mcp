@@ -28,19 +28,21 @@ namespace GameplayMcp.Tools
         /// </summary>
         /// <param name="reachable">If true (default), only reachable GameObjects are included.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
+        /// <param name="config">Optional configuration override, primarily for testing. If null, falls back to <see cref="McpServer.Instance"/> config.</param>
         /// <returns>JSON string with operable targets and their operators, or a message if none are found.</returns>
         [McpServerTool(Name = "get_available_target_operators", ReadOnly = true, Destructive = false)]
         [Description("Returns a list of operable GameObjects and their available operators as JSON.")]
         public static async Task<string> GetAvailableTargetOperatorsTool(
             [Description("If true (default), only reachable GameObjects are included.")]
             bool reachable = true,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            McpConfig config = null)
         {
             await UniTask.SwitchToMainThread(cancellationToken);
 
             try
             {
-                var config = McpServer.Instance.Config;
+                config ??= McpServer.Instance.Config;
                 var pairs = config.InteractableComponentsFinder.FindInteractableComponentsAndOperators().ToList();
 
                 IEnumerable<(UnityEngine.MonoBehaviour, IOperator)> filteredPairs = pairs;

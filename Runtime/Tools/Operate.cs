@@ -42,6 +42,7 @@ namespace GameplayMcp.Tools
         /// <param name="texture">Texture/sprite name on a Button component. If specified, uses ButtonMatcher.</param>
         /// <param name="operatorArgs">Operator-specific extra arguments as a JSON string. The JSON keys must match the parameter names of the operator's OperateAsync method overloads. Known built-in operator arguments: ITextInputOperator: {"text": "input text"}, IClickAndHoldOperator: {"holdMillis": 1000}, IToggleOperator: {"isOn": true}, IDragAndDropOperator (by GameObject): {"destination": {"name": "DropTarget"}, "dragSpeed": 50}, IDragAndDropOperator (by screen point): {"destination": [100.0, 200.0], "dragSpeed": 50}, IScrollWheelOperator: {"direction": [0.0, 1.0], "distance": 100, "scrollSpeed": 50}, ISwipeOperator: {"direction": [1.0, 0.0], "swipeSpeed": 100}. Not required for IClickOperator, IDoubleClickOperator, IRightClickOperator, IHoverOperator, IFlickOperator. Parameters with default values in the operator (e.g., dragSpeed, scrollSpeed, swipeSpeed) can be omitted. When a parameter type is GameObject, specify as {"name": "...", "path": "...", "text": "...", "texture": "..."} (same keys as the tool's target parameters); the tool will find the GameObject and verify reachability.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
+        /// <param name="config">Optional configuration override, primarily for testing. If null, falls back to <see cref="McpServer.Instance"/> config.</param>
         /// <returns>Success message, or an error message if the operation fails.</returns>
         [McpServerTool(Name = "operate", ReadOnly = false, Destructive = false)]
         [Description("Finds a reachable GameObject and executes the specified operator on it.")]
@@ -72,11 +73,12 @@ namespace GameplayMcp.Tools
                 "When a parameter type is GameObject, specify as {\"name\": \"...\", \"path\": \"...\", \"text\": \"...\", \"texture\": \"...\"} " +
                 "(same keys as the tool's target parameters); the tool will find the GameObject and verify reachability.")]
             string operatorArgs = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            McpConfig config = null)
         {
             await UniTask.SwitchToMainThread(cancellationToken);
 
-            var config = McpServer.Instance.Config;
+            config ??= McpServer.Instance.Config;
             IOperator targetOperator = null;
             try
             {

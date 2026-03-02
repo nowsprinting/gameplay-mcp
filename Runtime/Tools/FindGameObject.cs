@@ -27,6 +27,7 @@ namespace GameplayMcp.Tools
         /// <param name="texture">Texture/sprite name on a Button component. If specified, uses ButtonMatcher.</param>
         /// <param name="reachable">If true, only reachable GameObjects are returned.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
+        /// <param name="config">Optional configuration override, primarily for testing. If null, falls back to <see cref="McpServer.Instance"/> config.</param>
         /// <returns>JSON string with the found GameObject's name, path, and component details, or an exception message if not found.</returns>
         [McpServerTool(Name = "find_gameobject", ReadOnly = true, Destructive = false)]
         [Description("Finds a GameObject by name, path, text label, or texture and returns its component properties as JSON.")]
@@ -41,13 +42,14 @@ namespace GameplayMcp.Tools
             string texture = null,
             [Description("If true (default), only reachable GameObjects are returned.")]
             bool reachable = true,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            McpConfig config = null)
         {
             await UniTask.SwitchToMainThread(cancellationToken);
 
             try
             {
-                var config = McpServer.Instance.Config;
+                config ??= McpServer.Instance.Config;
 
                 // Use ButtonMatcher when text or texture is given; ComponentMatcher otherwise.
                 // ButtonMatcher requires a Button component, while ComponentMatcher matches any Component (typeof(Component)).
