@@ -74,6 +74,14 @@ namespace GameplayMcp
                     takeScreenshot));
             }
 
+            if (_config.EnableGetScenesTool)
+            {
+                var getScenes = new GetScenes();
+                tools.Add(McpServerTool.Create(
+                    typeof(GetScenes).GetMethod(nameof(GetScenes.GetScenesTool)),
+                    getScenes));
+            }
+
             _serverOptions = new McpServerOptions
             {
                 ServerInfo = new Implementation { Name = Application.productName, Version = Application.version },

@@ -83,5 +83,10 @@ namespace GameplayMcp
         /// Whether to register the take_screenshot tool.
         /// </summary>
         public bool EnableTakeScreenshotTool { get; set; } = true;
+
+        /// <summary>
+        /// Whether to register the get_scenes tool.
+        /// </summary>
+        public bool EnableGetScenesTool { get; set; } = true;
     }
 }
