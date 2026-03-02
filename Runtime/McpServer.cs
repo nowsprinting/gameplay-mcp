@@ -48,7 +48,6 @@ namespace GameplayMcp
                     )>();
 
             var tools = new McpServerPrimitiveCollection<McpServerTool>();
-            tools.Add(McpServerTool.Create(typeof(EchoTool).GetMethod(nameof(EchoTool.Echo))));
 
             if (_config.EnableFindGameObjectTool)
             {

@@ -36,13 +36,23 @@ namespace GameplayMcp
         }
 
         [Test]
-        public async Task ListToolsAsync_ConnectToServer_ContainsEchoTool()
+        public async Task ListToolsAsync_ConnectToServer_ContainsGetScenesTool()
         {
             await StartConnectionAsync();
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "echo"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_DisableGetScenesTool_NotContainsGetScenesTool()
+        {
+            await StartConnectionAsync(new McpConfig { EnableGetScenesTool = false });
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "get_scenes"));
         }
 
         [Test]
@@ -86,38 +96,15 @@ namespace GameplayMcp
         }
 
         [Test]
-        public async Task CallToolAsync_EchoWithMessage_ReturnsTextContentWithSameMessage()
-        {
-            await StartConnectionAsync();
-            const string Expected = "Hello, MCP!";
-
-            var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = Expected });
-
-            var actual = result.Content.OfType<TextContentBlock>().First().Text;
-            Assert.That(actual, Is.EqualTo(Expected));
-        }
-
-        [Test]
-        public async Task CallToolAsync_EchoWithEmptyString_ReturnsTextContentWithEmptyString()
+        public async Task CallToolAsync_GetScenes_ReturnsJsonWithActiveScene()
         {
             await StartConnectionAsync();
 
-            var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = "" });
+            var result = await _client.CallToolAsync("get_scenes", new Dictionary<string, object>());
 
-            var actual = result.Content.OfType<TextContentBlock>().First().Text;
-            Assert.That(actual, Is.Empty);
-        }
-
-        [Test]
-        public async Task CallToolAsync_EchoWithSpecialCharacters_ReturnsTextContentWithSameMessage()
-        {
-            await StartConnectionAsync();
-            const string Expected = "日本語テスト 🎮\n改行あり";
-
-            var result = await _client.CallToolAsync("echo", new Dictionary<string, object> { ["message"] = Expected });
-
-            var actual = result.Content.OfType<TextContentBlock>().First().Text;
-            Assert.That(actual, Is.EqualTo(Expected));
+            var json = result.Content.OfType<TextContentBlock>().First().Text;
+            var scenes = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(json);
+            Assert.That(scenes, Has.Some.Matches<System.Text.Json.JsonElement>(s => s.GetProperty("active").GetBoolean()));
         }
 
         private async Task StartConnectionAsync(McpConfig config = null)
