@@ -26,12 +26,28 @@ namespace GameplayMcp
     {
         private const string McpPath = "/mcp";
 
+        private static McpServer s_instance;
+
+        /// <summary>
+        /// Creates a new <see cref="McpServer"/> instance with the specified configuration.
+        /// If an existing instance is active, it is disposed before creating the new one.
+        /// </summary>
+        /// <param name="config">Configuration for the MCP server.</param>
+        /// <returns>The newly created <see cref="McpServer"/> instance.</returns>
+        public static McpServer CreateServer(McpConfig config)
+        {
+            s_instance?.Dispose();
+            s_instance = new McpServer(config);
+            return s_instance;
+        }
+
         /// <summary>
         /// The currently active <see cref="McpServer"/> instance.
-        /// Set when a new instance is constructed and cleared when it is disposed.
+        /// If no instance exists, one is created with a default <see cref="McpConfig"/>.
+        /// Use <see cref="CreateServer"/> to create an instance with custom configuration.
         /// Tool methods access configuration via this property.
         /// </summary>
-        public static McpServer Instance { get; private set; }
+        public static McpServer Instance => s_instance ??= CreateServer(new McpConfig());
 
         /// <summary>
         /// Configuration for this server instance.
@@ -48,11 +64,11 @@ namespace GameplayMcp
 
         /// <summary>
         /// Initializes a new instance of the <see cref="McpServer"/> class.
+        /// Use <see cref="CreateServer"/> to create instances.
         /// </summary>
         /// <param name="config">Configuration for the MCP server.</param>
-        public McpServer(McpConfig config)
+        private McpServer(McpConfig config)
         {
-            Instance = this;
             Config = config;
             _listener = new HttpListener();
             _listener.Prefixes.Add(Config.ListenPrefix);
@@ -133,7 +149,16 @@ namespace GameplayMcp
                 ((IAsyncDisposable)session.Server).DisposeAsync().GetAwaiter().GetResult();
             }
 
-            Instance = null;
+        }
+
+        /// <summary>
+        /// Disposes the current singleton instance and clears the static reference.
+        /// Safe to call even if no instance exists.
+        /// </summary>
+        public static void DisposeInstance()
+        {
+            s_instance?.Dispose();
+            s_instance = null;
         }
 
         /// <summary>

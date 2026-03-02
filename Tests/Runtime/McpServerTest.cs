@@ -26,7 +26,6 @@ namespace GameplayMcp
         private const int RetryCount = 10;
         private const int RetryDelayMilliseconds = 500;
 
-        private McpServer _server;
         private McpClient _client;
 
         [TearDown]
@@ -91,8 +90,7 @@ namespace GameplayMcp
 
         private async Task StartConnectionAsync(McpConfig config = null)
         {
-            _server = new McpServer(config ?? new McpConfig());
-            _server.StartAsync().Forget();
+            McpServer.CreateServer(config ?? new McpConfig()).StartAsync().Forget();
             _client = await ConnectAsync();
         }
 
@@ -104,9 +102,7 @@ namespace GameplayMcp
                 _client = null;
             }
 
-            _server?.Stop();
-            _server?.Dispose();
-            _server = null;
+            McpServer.DisposeInstance();
         }
 
         private static async Task<McpClient> ConnectAsync()
