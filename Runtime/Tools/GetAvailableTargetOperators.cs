@@ -1,10 +1,19 @@
 // Copyright (c) 2026 Koji Hasegawa.
 // This software is released under the MIT License.
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using ModelContextProtocol.Server;
+using TestHelper.UI.Extensions;
+using TestHelper.UI.Operators;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace GameplayMcp.Tools
 {
@@ -37,7 +46,66 @@ namespace GameplayMcp.Tools
             bool reachable = true,
             CancellationToken cancellationToken = default)
         {
-            return "";
+            await UniTask.SwitchToMainThread(cancellationToken);
+
+            try
+            {
+                var pairs = _config.InteractableComponentsFinder.FindInteractableComponentsAndOperators().ToList();
+
+                IEnumerable<(UnityEngine.MonoBehaviour, IOperator)> filteredPairs = pairs;
+                if (reachable)
+                {
+                    filteredPairs = pairs.Where(pair =>
+                        _config.ReachableStrategy.IsReachable(pair.Item1.gameObject, out _));
+                }
+
+                var entries = filteredPairs
+                    .GroupBy(pair => pair.Item1.gameObject)
+                    .Select(group => BuildEntry(group.Key, group.Select(p => p.Item2)))
+                    .ToList();
+
+                if (entries.Count == 0)
+                {
+                    return "No operable GameObjects found on the current scene.";
+                }
+
+                return JsonSerializer.Serialize(entries);
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
+        }
+
+        private static Dictionary<string, object> BuildEntry(GameObject go, IEnumerable<IOperator> operators)
+        {
+            var target = new Dictionary<string, object>
+            {
+                ["name"] = go.name,
+                ["path"] = go.transform.GetPath(),
+            };
+
+            var button = go.GetComponent<Button>();
+            if (button != null)
+            {
+                var text = go.GetComponentInChildren<Text>()?.text;
+                if (text != null)
+                {
+                    target["text"] = text;
+                }
+
+                var texture = go.GetComponent<Image>()?.sprite?.name;
+                if (texture != null)
+                {
+                    target["texture"] = texture;
+                }
+            }
+
+            return new Dictionary<string, object>
+            {
+                ["target"] = target,
+                ["operators"] = operators.Select(op => op.GetType().Name).Distinct().ToArray(),
+            };
         }
     }
 }
