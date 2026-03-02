@@ -68,5 +68,15 @@ namespace GameplayMcp
         /// Whether to register the find_gameobject tool.
         /// </summary>
         public bool EnableFindGameObjectTool { get; set; } = true;
+
+        /// <summary>
+        /// <see cref="IReachableStrategy"/> used to check whether a <c>GameObject</c> is reachable from the user.
+        /// </summary>
+        public IReachableStrategy ReachableStrategy { get; set; } = new DefaultReachableStrategy();
+
+        /// <summary>
+        /// Whether to register the get_available_target_operators tool.
+        /// </summary>
+        public bool EnableGetAvailableTargetOperatorsTool { get; set; } = true;
     }
 }

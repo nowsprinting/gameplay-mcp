@@ -58,6 +58,14 @@ namespace GameplayMcp
                     findGameObject));
             }
 
+            if (_config.EnableGetAvailableTargetOperatorsTool)
+            {
+                var getAvailableTargetOperators = new GetAvailableTargetOperators(_config);
+                tools.Add(McpServerTool.Create(
+                    typeof(GetAvailableTargetOperators).GetMethod(nameof(GetAvailableTargetOperators.GetAvailableTargetOperatorsTool)),
+                    getAvailableTargetOperators));
+            }
+
             _serverOptions = new McpServerOptions
             {
                 ServerInfo = new Implementation { Name = Application.productName, Version = Application.version },
