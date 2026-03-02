@@ -1,4 +1,4 @@
-# Gameplay MCP
+# Gameplay MCP Server for Unity
 
 Model context protocol (MCP) server for gameplay. Provides tools that AI models play your game via the MCP by embedding in your runtime (player build).
 
