@@ -205,6 +205,20 @@ namespace GameplayMcp
             // Deserialize the request body as a JSON-RPC message
             using var reader = new StreamReader(request.InputStream);
             var body = await reader.ReadToEndAsync();
+
+            // Check cancellation after reading: when the server shuts down, the client may disconnect
+            // mid-request, causing ReadToEndAsync to return an empty string. Deserializing an empty string
+            // throws JsonReaderException, which would be logged as an unexpected error.
+            // Throwing OperationCanceledException here lets the caller's catch (OperationCanceledException)
+            // handle shutdown silently instead.
+            ct.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(body))
+            {
+                response.StatusCode = 400;
+                return;
+            }
+
             var message = JsonSerializer.Deserialize<JsonRpcMessage>(body, McpJsonUtilities.DefaultOptions);
 
             if (message == null)
