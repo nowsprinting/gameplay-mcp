@@ -3,6 +3,7 @@
     "rootNamespace": "GameplayMcp",
     "references": [
         "TestHelper.Random",
+        "TestHelper.RuntimeInternals",
         "TestHelper.UI",
         "UniTask"
     ],

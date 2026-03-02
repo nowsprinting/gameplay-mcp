@@ -66,6 +66,14 @@ namespace GameplayMcp
                     getAvailableTargetOperators));
             }
 
+            if (_config.EnableTakeScreenshotTool)
+            {
+                var takeScreenshot = new TakeScreenshot();
+                tools.Add(McpServerTool.Create(
+                    typeof(TakeScreenshot).GetMethod(nameof(TakeScreenshot.TakeScreenshotTool)),
+                    takeScreenshot));
+            }
+
             _serverOptions = new McpServerOptions
             {
                 ServerInfo = new Implementation { Name = Application.productName, Version = Application.version },

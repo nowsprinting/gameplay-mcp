@@ -66,6 +66,26 @@ namespace GameplayMcp
         }
 
         [Test]
+        public async Task ListToolsAsync_ConnectToServer_ContainsTakeScreenshotTool()
+        {
+            await StartConnectionAsync();
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_DisableTakeScreenshotTool_NotContainsTakeScreenshotTool()
+        {
+            await StartConnectionAsync(new McpConfig { EnableTakeScreenshotTool = false });
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
+        }
+
+        [Test]
         public async Task CallToolAsync_EchoWithMessage_ReturnsTextContentWithSameMessage()
         {
             await StartConnectionAsync();
