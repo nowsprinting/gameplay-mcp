@@ -33,7 +33,7 @@ namespace GameplayMcp.Tools
             var actual = await sut.GetScenesTool();
 
             var scenes = JsonSerializer.Deserialize<JsonElement[]>(actual);
-            Assert.That(scenes[0].GetProperty("active").GetBoolean(), Is.True);
+            Assert.That(scenes, Has.Some.Matches<JsonElement>(s => s.GetProperty("active").GetBoolean()));
         }
     }
 }

@@ -27,7 +27,22 @@ namespace GameplayMcp.Tools
         [Description("Returns the currently loaded scenes as JSON. The active scene is marked with active=true.")]
         public async Task<string> GetScenesTool(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            await UniTask.SwitchToMainThread(cancellationToken);
+            try
+            {
+                var activeScene = SceneManager.GetActiveScene();
+                var scenes = new List<object>();
+                for (var i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    scenes.Add(new { name = scene.name, active = scene == activeScene });
+                }
+                return JsonSerializer.Serialize(scenes);
+            }
+            catch (Exception e)
+            {
+                return e.ToString();
+            }
         }
     }
 }
