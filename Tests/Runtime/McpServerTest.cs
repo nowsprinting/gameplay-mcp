@@ -22,7 +22,8 @@ namespace GameplayMcp
     [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP006:Implement IDisposable")]
     public class McpServerTest
     {
-        private const string ServerEndpoint = "http://localhost:8010/mcp";
+        private const string ServerListenPrefix = "http://+:8011/";
+        private const string ServerEndpoint = "http://localhost:8011/mcp";
         private const int RetryCount = 10;
         private const int RetryDelayMilliseconds = 500;
 
@@ -91,7 +92,9 @@ namespace GameplayMcp
 
         private async Task StartConnectionAsync(McpConfig config = null)
         {
-            _server = new McpServer(config ?? new McpConfig());
+            config ??= new McpConfig();
+            config.ListenPrefix = ServerListenPrefix;
+            _server = new McpServer(config);
             _server.StartAsync().Forget();
             _client = await ConnectAsync();
         }
