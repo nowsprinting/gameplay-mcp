@@ -1,0 +1,41 @@
+# Copyright (c) 2026 Koji Hasegawa.
+# This software is released under the MIT License.
+
+name: Lint workflow files
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/**
+  pull_request:
+    types: [ opened, synchronize, reopened ]  # Same as default
+    paths:
+      - .github/workflows/**
+
+permissions: { }
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          submodules: false
+          lfs: false
+
+      - uses: reviewdog/action-actionlint@e58ee9d111489c31395fbe4857b0be6e7635dbda # v1
+        with:
+          reporter: github-pr-review
+          fail_level: error
