@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -26,34 +27,6 @@ namespace GameplayMcp
     {
         private const string McpPath = "/mcp";
 
-        private static McpServer s_instance;
-
-        /// <summary>
-        /// Creates a new <see cref="McpServer"/> instance with the specified configuration.
-        /// If an existing instance is active, it is disposed before creating the new one.
-        /// </summary>
-        /// <param name="config">Configuration for the MCP server.</param>
-        /// <returns>The newly created <see cref="McpServer"/> instance.</returns>
-        public static McpServer CreateServer(McpConfig config)
-        {
-            s_instance?.Dispose();
-            s_instance = new McpServer(config);
-            return s_instance;
-        }
-
-        /// <summary>
-        /// The currently active <see cref="McpServer"/> instance.
-        /// If no instance exists, one is created with a default <see cref="McpConfig"/>.
-        /// Use <see cref="CreateServer"/> to create an instance with custom configuration.
-        /// Tool methods access configuration via this property.
-        /// </summary>
-        public static McpServer Instance => s_instance ??= CreateServer(new McpConfig());
-
-        /// <summary>
-        /// Configuration for this server instance.
-        /// </summary>
-        public McpConfig Config { get; }
-
         private readonly HttpListener _listener;
         private CancellationTokenSource _cts;
 
@@ -61,22 +34,27 @@ namespace GameplayMcp
             ModelContextProtocol.Server.McpServer Server)> _sessions;
 
         private readonly McpServerOptions _serverOptions;
+        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="McpServer"/> class.
-        /// Use <see cref="CreateServer"/> to create instances.
         /// </summary>
         /// <param name="config">Configuration for the MCP server.</param>
-        private McpServer(McpConfig config)
+        public McpServer(McpConfig config)
         {
-            Config = config;
+            if (config == null) throw new ArgumentNullException(nameof(config));
+
             _listener = new HttpListener();
-            _listener.Prefixes.Add(Config.ListenPrefix);
+            _listener.Prefixes.Add(config.ListenPrefix);
             _sessions =
                 new ConcurrentDictionary<string, (StreamableHttpServerTransport, ModelContextProtocol.Server.McpServer
                     )>();
 
-            var tools = ScanToolsFromAssemblies();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(config);
+            _serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var tools = ScanToolsFromAssemblies(_serviceProvider);
 
             _serverOptions = new McpServerOptions
             {
@@ -85,9 +63,9 @@ namespace GameplayMcp
                 ToolCollection = tools,
             };
 
-            if (Config.DisabledTools.Count > 0)
+            if (config.DisabledTools.Count > 0)
             {
-                var disabled = Config.DisabledTools;
+                var disabled = config.DisabledTools;
                 _serverOptions.Filters.Request.ListToolsFilters.Add(next => async (request, ct) =>
                 {
                     var result = await next(request, ct);
@@ -99,9 +77,10 @@ namespace GameplayMcp
 
         // WithToolsFromAssembly (IMcpServerBuilder extension) requires the DI container (IMcpServerBuilder),
         // which is not used in this project. Replicate its assembly-scanning logic here instead.
-        private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies()
+        private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies(IServiceProvider services)
         {
             var tools = new McpServerPrimitiveCollection<McpServerTool>();
+            var options = new McpServerToolCreateOptions { Services = services };
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -126,7 +105,7 @@ namespace GameplayMcp
                     {
                         if (method.GetCustomAttribute<McpServerToolAttribute>() != null)
                         {
-                            tools.Add(McpServerTool.Create(method, (object)null));
+                            tools.Add(McpServerTool.Create(method, (object)null, options));
                         }
                     }
                 }
@@ -142,23 +121,14 @@ namespace GameplayMcp
             _cts?.Dispose();
             _cts = null;
 
+            (_serviceProvider as IDisposable)?.Dispose();
+
             _listener.Close();
             foreach (var session in _sessions.Values)
             {
                 session.Transport.DisposeAsync().GetAwaiter().GetResult();
                 ((IAsyncDisposable)session.Server).DisposeAsync().GetAwaiter().GetResult();
             }
-
-        }
-
-        /// <summary>
-        /// Disposes the current singleton instance and clears the static reference.
-        /// Safe to call even if no instance exists.
-        /// </summary>
-        public static void DisposeInstance()
-        {
-            s_instance?.Dispose();
-            s_instance = null;
         }
 
         /// <summary>
@@ -171,7 +141,7 @@ namespace GameplayMcp
             _cts = new CancellationTokenSource();
 
             _listener.Start();
-            Debug.Log($"Gameplay MCP Server started. Listening on {Config.ListenPrefix}");
+            Debug.Log($"Gameplay MCP Server started. Listening on {string.Join(", ", _listener.Prefixes)}");
 
             // Stop the listener when cancellation is requested
             var ct = _cts.Token;
@@ -299,7 +269,8 @@ namespace GameplayMcp
                 // SessionId must be set explicitly via object initializer;
                 // StreamableHttpServerTransport does not auto-generate it (that is done by StreamableHttpHandler in ASP.NET Core)
                 transport = new StreamableHttpServerTransport { SessionId = Guid.NewGuid().ToString("N") };
-                var server = ModelContextProtocol.Server.McpServer.Create(transport, _serverOptions);
+                var server =
+                    ModelContextProtocol.Server.McpServer.Create(transport, _serverOptions, null, _serviceProvider);
                 _sessions.TryAdd(transport.SessionId, (transport, server));
                 _ = server.RunAsync(ct);
             }
@@ -351,7 +322,7 @@ namespace GameplayMcp
             await session.Transport.HandleGetRequestAsync(response.OutputStream, ct);
         }
 
-        private Task HandleDeleteAsync(HttpListenerRequest request, HttpListenerResponse response, CancellationToken ct)
+        private Task HandleDeleteAsync(HttpListenerRequest request, HttpListenerResponse response, CancellationToken _)
         {
             var sessionId = request.Headers["Mcp-Session-Id"];
             if (!string.IsNullOrEmpty(sessionId) && _sessions.TryRemove(sessionId, out var session))

@@ -21,31 +21,30 @@ namespace GameplayMcp.Tools
     /// MCP tool that returns a list of operable GameObjects and their operators as JSON.
     /// </summary>
     [McpServerToolType]
-    public class GetAvailableTargetOperators
+    public static class GetAvailableTargetOperators
     {
         /// <summary>
         /// Returns a list of operable GameObjects and their available operators as JSON.
         /// </summary>
         /// <param name="reachable">If true (default), only reachable GameObjects are included.</param>
+        /// <param name="config">Configuration injected via DI.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <param name="config">Optional configuration override, primarily for testing. If null, falls back to <see cref="McpServer.Instance"/> config.</param>
         /// <returns>JSON string with operable targets and their operators, or a message if none are found.</returns>
         [McpServerTool(Name = "get_available_target_operators", ReadOnly = true, Destructive = false)]
         [Description("Returns a list of operable GameObjects and their available operators as JSON.")]
         public static async Task<string> GetAvailableTargetOperatorsTool(
             [Description("If true (default), only reachable GameObjects are included.")]
             bool reachable = true,
-            CancellationToken cancellationToken = default,
-            McpConfig config = null)
+            McpConfig config = null, // Injected via IServiceProvider; default null is never used at runtime
+            CancellationToken cancellationToken = default)
         {
             await UniTask.SwitchToMainThread(cancellationToken);
 
             try
             {
-                config ??= McpServer.Instance.Config;
                 var pairs = config.InteractableComponentsFinder.FindInteractableComponentsAndOperators().ToList();
 
-                IEnumerable<(UnityEngine.MonoBehaviour, IOperator)> filteredPairs = pairs;
+                IEnumerable<(MonoBehaviour, IOperator)> filteredPairs = pairs;
                 if (reachable)
                 {
                     filteredPairs = pairs.Where(pair =>

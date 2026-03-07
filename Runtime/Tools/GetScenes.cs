@@ -17,7 +17,7 @@ namespace GameplayMcp.Tools
     /// MCP tool that returns the currently loaded scenes as JSON.
     /// </summary>
     [McpServerToolType]
-    public class GetScenes
+    public static class GetScenes
     {
         /// <summary>
         /// Returns the currently loaded scenes as JSON. The active scene is marked with active=true.
