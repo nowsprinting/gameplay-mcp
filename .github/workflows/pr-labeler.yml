@@ -1,0 +1,30 @@
+# Copyright (c) 2026 Koji Hasegawa.
+# This software is released under the MIT License.
+
+name: PR Labeler
+
+on:
+  pull_request:
+    types: [ opened ]
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  pr-labeler:
+    if: github.event.pull_request.head.repo.fork == false # Skip on public fork
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: TimonVS/pr-labeler-action@f9c084306ce8b3f488a8f3ee1ccedc6da131d1af # v5
+        with:
+          configuration-path: .github/pr-labeler.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
