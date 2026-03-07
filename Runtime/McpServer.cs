@@ -42,6 +42,8 @@ namespace GameplayMcp
         /// <param name="config">Configuration for the MCP server.</param>
         public McpServer(McpConfig config)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+
             _listener = new HttpListener();
             _listener.Prefixes.Add(config.ListenPrefix);
             _sessions =
