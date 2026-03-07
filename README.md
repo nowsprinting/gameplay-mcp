@@ -1,5 +1,8 @@
 # Gameplay MCP Server for Unity
 
+[![Meta file check](https://github.com/nowsprinting/gameplay-mcp/actions/workflows/metacheck.yml/badge.svg)](https://github.com/nowsprinting/gameplay-mcp/actions/workflows/metacheck.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nowsprinting/gameplay-mcp)
+
 Model context protocol (MCP) server for gameplay. Provides tools that AI models play your game via the MCP by embedding in your runtime (player build).
 
 ## Key Features
