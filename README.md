@@ -35,7 +35,7 @@ var config = new McpConfig
         .Register<UguiDragAndDropOperator>()
         .Register<UguiTextInputOperator>()
 };
-var server = McpServer.CreateServer(config);
+var server = new McpServer(config);
 server.StartAsync().Forget();
 ```
 
@@ -47,7 +47,7 @@ server.StartAsync().Forget();
 To stop the server from a debug menu if you need:
 
 ```csharp
-McpServer.DisposeInstance();
+server.Dispose();
 ```
 
 ### MCP Settings in Coding Agent

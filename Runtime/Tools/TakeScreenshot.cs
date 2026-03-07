@@ -17,7 +17,7 @@ namespace GameplayMcp.Tools
     /// MCP tool that captures the current game screen and returns it as an image.
     /// </summary>
     [McpServerToolType]
-    public class TakeScreenshot
+    public static class TakeScreenshot
     {
         /// <summary>
         /// Captures the current game screen and returns it as an image.
