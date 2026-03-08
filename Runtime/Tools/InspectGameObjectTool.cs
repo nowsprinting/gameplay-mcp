@@ -13,13 +13,15 @@ using TestHelper.UI.GameObjectMatchers;
 namespace GameplayMcp.Tools
 {
     /// <summary>
-    /// MCP tool that finds a GameObject by name, path, text, or texture and returns its component information as JSON.
+    /// MCP tool that inspects a GameObject by name, path, text, or texture and returns its component information as JSON.
+    /// Waits for the GameObject to appear and become reachable within a timeout period.
     /// </summary>
     [McpServerToolType]
-    public static class FindGameObject
+    public static class InspectGameObjectTool
     {
         /// <summary>
-        /// Finds a GameObject by name, path, text label, or texture name and returns its component information as JSON.
+        /// Inspects a GameObject by name, path, text label, or texture name and returns its component information as JSON.
+        /// Waits for the GameObject to appear and become reachable within a timeout period.
         /// </summary>
         /// <param name="path">Hierarchy path separated by '/'. Supports glob wildcards (?, *, **).</param>
         /// <param name="name">GameObject name.</param>
@@ -29,9 +31,9 @@ namespace GameplayMcp.Tools
         /// <param name="config">Configuration injected via DI.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>JSON string with the found GameObject's name, path, and component details, or an exception message if not found.</returns>
-        [McpServerTool(Name = "find_gameobject", ReadOnly = true, Destructive = false)]
-        [Description("Finds a GameObject by name, path, text label, or texture and returns its component properties as JSON.")]
-        public static async Task<string> FindGameObjectTool(
+        [McpServerTool(Name = "inspect_game_object", ReadOnly = true, Destructive = false)]
+        [Description("Inspect a GameObject by name, path, text label, or texture name and returns properties as JSON. Waits for the GameObject to appear and become reachable within a timeout period.")]
+        public static async Task<string> InspectGameObject(
             [Description("Hierarchy path separated by '/'. Supports glob wildcards (?, *, **).")]
             string path = null,
             [Description("GameObject name.")] string name = null,

@@ -10,36 +10,36 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
-    public class FindGameObjectTest
+    public class InspectGameObjectToolTest
     {
         [Test]
         [CreateScene]
-        public async Task FindGameObjectTool_ByName_ReturnsJsonContainingName()
+        public async Task InspectGameObject_ByName_ReturnsJsonContainingName()
         {
             var go = new GameObject("TargetObject");
             go.AddComponent<Canvas>(); // needs Canvas to be reachable via raycasting, but for name search we skip reachable
 
-            var actual = await FindGameObject.FindGameObjectTool(name: "TargetObject", reachable: false, config: new McpConfig());
+            var actual = await InspectGameObjectTool.InspectGameObject(name: "TargetObject", reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("TargetObject"));
         }
 
         [Test]
         [CreateScene]
-        public async Task FindGameObjectTool_ByPath_ReturnsJsonContainingPath()
+        public async Task InspectGameObject_ByPath_ReturnsJsonContainingPath()
         {
             var parent = new GameObject("ParentObj");
             var child = new GameObject("ChildObj");
             child.transform.SetParent(parent.transform);
 
-            var actual = await FindGameObject.FindGameObjectTool(path: "/ParentObj/ChildObj", reachable: false, config: new McpConfig());
+            var actual = await InspectGameObjectTool.InspectGameObject(path: "/ParentObj/ChildObj", reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("/ParentObj/ChildObj"));
         }
 
         [Test]
         [CreateScene]
-        public async Task FindGameObjectTool_WithText_ReturnsJsonContainingButtonComponent()
+        public async Task InspectGameObject_WithText_ReturnsJsonContainingButtonComponent()
         {
             // Create a Button with a Text child
             var canvasGo = new GameObject("Canvas");
@@ -52,16 +52,16 @@ namespace GameplayMcp.Tools
             var textComp = textGo.AddComponent<Text>();
             textComp.text = "Start";
 
-            var actual = await FindGameObject.FindGameObjectTool(text: "Start", reachable: false, config: new McpConfig());
+            var actual = await InspectGameObjectTool.InspectGameObject(text: "Start", reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("Button"));
         }
 
         [Test]
         [CreateScene]
-        public async Task FindGameObjectTool_NotFound_ReturnsExceptionMessage()
+        public async Task InspectGameObject_NotFound_ReturnsExceptionMessage()
         {
-            var actual = await FindGameObject.FindGameObjectTool(name: "NonExistentGameObject_12345", reachable: false, config: new McpConfig());
+            var actual = await InspectGameObjectTool.InspectGameObject(name: "NonExistentGameObject_12345", reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("Exception").Or.Contain("not found").Or.Contain("TimeoutException"));
         }

@@ -59,13 +59,13 @@ namespace GameplayMcp
         }
 
         [Test]
-        public async Task ListToolsAsync_ConnectToServer_ContainsFindGameObjectTool()
+        public async Task ListToolsAsync_ConnectToServer_ContainsInspectGameObjectTool()
         {
             await StartConnectionAsync();
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.find_gameobject"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.inspect_game_object"));
         }
 
         [Test]
