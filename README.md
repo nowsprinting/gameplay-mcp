@@ -88,7 +88,7 @@ Returns a list of operable actions as a JSON array. Each entry contains a target
 
 - **reachable** — If `true` (default), only reachable GameObjects are included.
 
-### operate
+### invoke_action
 
 Finds a reachable GameObject and executes the specified operator on it.
 

@@ -23,7 +23,7 @@ namespace GameplayMcp.Tools
     /// MCP tool that finds a reachable GameObject and executes the specified operator on it.
     /// </summary>
     [McpServerToolType]
-    public static class Operate
+    public static class InvokeActionTool
     {
         // Excluded by parameter name, not type, so that additional GameObject parameters
         // (e.g., IDragAndDropOperator.destination) are recognized as extra parameters.
@@ -44,9 +44,9 @@ namespace GameplayMcp.Tools
         /// <param name="config">Configuration injected via DI.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>Success message, or an error message if the operation fails.</returns>
-        [McpServerTool(Name = "operate", ReadOnly = false, Destructive = false)]
+        [McpServerTool(Name = "invoke_action", ReadOnly = false, Destructive = false)]
         [Description("Finds a reachable GameObject and executes the specified operator on it.")]
-        public static async Task<string> OperateTool(
+        public static async Task<string> InvokeAction(
             [Description("Concrete operator class name (e.g., \"UguiClickOperator\").")]
             string operatorName,
             [Description("Hierarchy path separated by '/'. Supports glob wildcards (?, *, **).")]
@@ -141,7 +141,7 @@ namespace GameplayMcp.Tools
                     jsonArgs, config, cancellationToken);
                 await (UniTask)selectedOverload.Invoke(targetOperator, invokeArgs);
 
-                return $"Operated '{operatorName}' on '{findResult.GameObject.name}'.";
+                return $"Invoked '{operatorName}' on '{findResult.GameObject.name}'.";
             }
             catch (Exception e)
             {

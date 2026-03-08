@@ -12,7 +12,7 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
-    public class OperateTest
+    public class InvokeActionToolTest
     {
         private const string ButtonName = "TestButton";
 
@@ -59,13 +59,13 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_WithoutOperatorArgs_CallsBaseOperateAsync()
+        public async Task InvokeAction_WithoutOperatorArgs_CallsBaseOperateAsync()
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out var spy);
 
-            await Operate.OperateTool(
+            await InvokeActionTool.InvokeAction(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName,
                 config: config);
@@ -75,13 +75,13 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_WithOperatorArgs_CallsMatchingOverload()
+        public async Task InvokeAction_WithOperatorArgs_CallsMatchingOverload()
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithOverload(out var spy);
 
-            await Operate.OperateTool(
+            await InvokeActionTool.InvokeAction(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
                 operatorArgs: "{\"text\": \"hello\"}",
@@ -92,13 +92,13 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_WithNullOperatorArgs_CallsBaseOperateAsync()
+        public async Task InvokeAction_WithNullOperatorArgs_CallsBaseOperateAsync()
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithOverload(out var spy);
 
-            await Operate.OperateTool(
+            await InvokeActionTool.InvokeAction(
                 operatorName: nameof(SpyOperatorWithOverload),
                 name: ButtonName,
                 operatorArgs: null,
@@ -109,22 +109,22 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_WithUnregisteredOperator_ReturnsError()
+        public async Task InvokeAction_WithUnregisteredOperator_ReturnsError()
         {
-            var actual = await Operate.OperateTool(operatorName: "NonExistentOperator_12345", config: new McpConfig());
+            var actual = await InvokeActionTool.InvokeAction(operatorName: "NonExistentOperator_12345", config: new McpConfig());
 
             Assert.That(actual, Does.Contain("NonExistentOperator_12345"));
         }
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_CanOperateFalse_ReturnsError()
+        public async Task InvokeAction_CanOperateFalse_ReturnsError()
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out _, canOperate: false);
 
-            var actual = await Operate.OperateTool(
+            var actual = await InvokeActionTool.InvokeAction(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName,
                 config: config);
@@ -134,13 +134,13 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task OperateTool_WithMismatchedArgs_ReturnsErrorWithParamInfo()
+        public async Task InvokeAction_WithMismatchedArgs_ReturnsErrorWithParamInfo()
         {
             CreateButton(CreateCanvas());
             CreateEventSystem();
             var config = CreateConfigWithSpyWithoutOverload(out _);
 
-            var actual = await Operate.OperateTool(
+            var actual = await InvokeActionTool.InvokeAction(
                 operatorName: nameof(SpyOperatorWithoutOverload),
                 name: ButtonName,
                 operatorArgs: "{\"nonExistentParam\": 42}",
