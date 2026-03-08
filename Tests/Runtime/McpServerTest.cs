@@ -43,19 +43,19 @@ namespace GameplayMcp
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.get_scenes"));
         }
 
         [Test]
         public async Task ListToolsAsync_DisableGetScenesTool_NotContainsGetScenesTool()
         {
             var config = new McpConfig();
-            config.DisabledTools.Add("get_scenes");
+            config.DisabledTools.Add("mygame.get_scenes");
             await StartConnectionAsync(config);
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "mygame.get_scenes"));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace GameplayMcp
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.find_gameobject"));
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace GameplayMcp
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.take_screenshot"));
         }
 
         [Test]
@@ -83,11 +83,44 @@ namespace GameplayMcp
         {
             await StartConnectionAsync();
 
-            var result = await _client.CallToolAsync("get_scenes", new Dictionary<string, object>());
+            var result = await _client.CallToolAsync("mygame.get_scenes", new Dictionary<string, object>());
 
             var json = result.Content.OfType<TextContentBlock>().First().Text;
             var scenes = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(json);
             Assert.That(scenes, Has.Some.Matches<System.Text.Json.JsonElement>(s => s.GetProperty("active").GetBoolean()));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_CustomToolsNamespace_ToolNamesHaveCustomPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = "custom" };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "custom.get_scenes"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_EmptyToolsNamespace_ToolNamesHaveNoPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = "" };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_NullToolsNamespace_ToolNamesHaveNoPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = null };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "get_scenes"));
         }
 
         private async Task StartConnectionAsync(McpConfig config = null)

@@ -54,7 +54,7 @@ namespace GameplayMcp
             serviceCollection.AddSingleton(config);
             _serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var tools = ScanToolsFromAssemblies(_serviceProvider);
+            var tools = ScanToolsFromAssemblies(_serviceProvider, config.ToolsNamespace);
 
             _serverOptions = new McpServerOptions
             {
@@ -77,7 +77,7 @@ namespace GameplayMcp
 
         // WithToolsFromAssembly (IMcpServerBuilder extension) requires the DI container (IMcpServerBuilder),
         // which is not used in this project. Replicate its assembly-scanning logic here instead.
-        private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies(IServiceProvider services)
+        private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies(IServiceProvider services, string toolsNamespace)
         {
             var tools = new McpServerPrimitiveCollection<McpServerTool>();
             var options = new McpServerToolCreateOptions { Services = services };
