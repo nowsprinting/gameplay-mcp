@@ -17,16 +17,16 @@ namespace GameplayMcp.Tools
     /// MCP tool that returns the currently loaded scenes as JSON.
     /// </summary>
     [McpServerToolType]
-    public static class GetScenes
+    public static class ListScenesTool
     {
         /// <summary>
         /// Returns the currently loaded scenes as JSON. The active scene is marked with active=true.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>JSON array of scene objects with name and active fields, or error message on failure.</returns>
-        [McpServerTool(Name = "get_scenes", ReadOnly = true, Destructive = false)]
+        [McpServerTool(Name = "list_scenes", ReadOnly = true, Destructive = false)]
         [Description("Returns the currently loaded scenes as JSON. The active scene is marked with active=true.")]
-        public static async Task<string> GetScenesTool(CancellationToken cancellationToken = default)
+        public static async Task<string> ListScenes(CancellationToken cancellationToken = default)
         {
             await UniTask.SwitchToMainThread(cancellationToken);
             try

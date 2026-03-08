@@ -116,7 +116,7 @@ Captures the current game screen and returns it as an image.
 - **format** — Image format: `"jpeg"` (default) or `"png"`.
 - **quality** — JPEG encoding quality (1–100). Only used when `format` is `"jpeg"`. Defaults to `75`.
 
-### get_scenes
+### list_scenes
 
 Returns the currently loaded scenes as JSON. The active scene is marked with `active=true`.
 

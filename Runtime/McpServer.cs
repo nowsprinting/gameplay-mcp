@@ -128,7 +128,7 @@ namespace GameplayMcp
         private static string ToSnakeCase(string name)
         {
             // Replicate the SDK's snake_case derivation used when McpServerToolAttribute.Name is not set.
-            // e.g., "GetScenes" → "get_scenes"
+            // e.g., "ListScenes" → "list_scenes"
             var sb = new System.Text.StringBuilder(name.Length + 4);
             for (var i = 0; i < name.Length; i++)
             {
