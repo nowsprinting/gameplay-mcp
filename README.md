@@ -39,7 +39,7 @@ var server = new McpServer(config);
 server.StartAsync().Forget();
 ```
 
-`McpConfig` exposes additional settings beyond `OperatorPool`, including `GameObjectFinder`, `IsInteractable`, and `ReachableStrategy`. Refer to the [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) documentation for details on these configuration options.
+`McpConfig` exposes additional settings beyond `OperatorPool`, including `GameObjectFinder`, `IsInteractable`, `ReachableStrategy`, and `ToolsNamespace`. Refer to the [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) documentation for details on the UI-related configuration options.
 
 > [!TIP]  
 > You can override the listen prefix via the `-gameplayMcpListenPrefix` command-line argument. Note that if `ListenPrefix` is set in `McpConfig`, it takes precedence over the command-line argument.
@@ -68,6 +68,9 @@ e.g.,
 ## Built-in Tools
 
 Most built-in tools are wrappers of [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) APIs.
+
+> [!NOTE]  
+> The tool name is prefixed with the namespace; the default namespace is `mygame`, resulting in `mygame.find_gameobject`.
 
 ### find_gameobject
 
@@ -146,7 +149,7 @@ If a custom tool covers the same use case as a built-in tool, you can hide the b
 
 ```csharp
 var config = new McpConfig();
-config.DisabledTools.Add("find_gameobject"); // optional: hide a specific built-in tool
+config.DisabledTools.Add("mygame.find_gameobject"); // use the full prefixed name
 ```
 
 Hidden tools are excluded from `tools/list` responses. MCP clients typically only call tools they discover via `tools/list`, so this effectively disables them.

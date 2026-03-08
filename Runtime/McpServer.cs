@@ -80,7 +80,7 @@ namespace GameplayMcp
         private static McpServerPrimitiveCollection<McpServerTool> ScanToolsFromAssemblies(IServiceProvider services, string toolsNamespace)
         {
             var tools = new McpServerPrimitiveCollection<McpServerTool>();
-            var options = new McpServerToolCreateOptions { Services = services };
+            var hasNamespace = !string.IsNullOrEmpty(toolsNamespace);
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -103,15 +103,44 @@ namespace GameplayMcp
 
                     foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
                     {
-                        if (method.GetCustomAttribute<McpServerToolAttribute>() != null)
+                        var attr = method.GetCustomAttribute<McpServerToolAttribute>();
+                        if (attr == null)
                         {
-                            tools.Add(McpServerTool.Create(method, (object)null, options));
+                            continue;
                         }
+
+                        var options = new McpServerToolCreateOptions { Services = services };
+                        if (hasNamespace)
+                        {
+                            // Attribute.Name takes priority; fall back to SDK's snake_case conversion of method name.
+                            var baseName = !string.IsNullOrEmpty(attr.Name) ? attr.Name : ToSnakeCase(method.Name);
+                            options.Name = $"{toolsNamespace}.{baseName}";
+                        }
+
+                        tools.Add(McpServerTool.Create(method, (object)null, options));
                     }
                 }
             }
 
             return tools;
+        }
+
+        private static string ToSnakeCase(string name)
+        {
+            // Replicate the SDK's snake_case derivation used when McpServerToolAttribute.Name is not set.
+            // e.g., "GetScenes" → "get_scenes"
+            var sb = new System.Text.StringBuilder(name.Length + 4);
+            for (var i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]))
+                {
+                    sb.Append('_');
+                }
+
+                sb.Append(char.ToLower(name[i]));
+            }
+
+            return sb.ToString();
         }
 
         /// <inheritdoc/>
