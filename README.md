@@ -82,9 +82,9 @@ Inspect a GameObject by name, path, text label, or texture name and returns prop
 - **texture** — Texture/sprite name on a Button component. If specified, uses `ButtonMatcher`.
 - **reachable** — If `true` (default), only reachable GameObjects are returned.
 
-### get_available_target_operators
+### list_available_actions
 
-Returns a list of operable GameObjects and their available operators as JSON. Each entry includes the target's name, hierarchy path, and the list of operator class names that can operate on it. For Button components, the text label and texture name are also included.
+Returns a list of operable actions as a JSON array. Each entry contains a target GameObject and the operator class name that can act on it. For Button components, the text label and texture name are also included in the target.
 
 - **reachable** — If `true` (default), only reachable GameObjects are included.
 
