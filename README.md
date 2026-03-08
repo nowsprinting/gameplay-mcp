@@ -112,7 +112,7 @@ Finds a reachable GameObject and executes the specified operator on it.
 
 Captures the current game screen and returns it as an image.
 
-- **maxLongSide** — Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to `1568`.
+- **maxPixels** — Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to `1568`.
 - **format** — Image format: `"jpeg"` (default) or `"png"`.
 - **quality** — JPEG encoding quality (1–100). Only used when `format` is `"jpeg"`. Defaults to `75`.
 

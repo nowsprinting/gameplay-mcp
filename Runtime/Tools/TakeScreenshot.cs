@@ -23,7 +23,7 @@ namespace GameplayMcp.Tools
         /// Captures the current game screen and returns it as an image.
         /// </summary>
         /// <param name="format">Image format: "jpeg" (default) or "png".</param>
-        /// <param name="maxLongSide">Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to 1568.</param>
+        /// <param name="maxPixels">Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to 1568.</param>
         /// <param name="quality">JPEG encoding quality (1-100). Only used when format is "jpeg". Defaults to 75.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>ImageContentBlock on success, TextContentBlock with error message on failure.</returns>
@@ -33,7 +33,7 @@ namespace GameplayMcp.Tools
             [Description("Image format: \"jpeg\" (default) or \"png\".")]
             string format = "jpeg",
             [Description("Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to 1568.")]
-            int maxLongSide = 1568,
+            int maxPixels = 1568,
             [Description("JPEG encoding quality (1-100). Only used when format is \"jpeg\". Defaults to 75.")]
             int quality = 75,
             CancellationToken cancellationToken = default)
@@ -45,7 +45,7 @@ namespace GameplayMcp.Tools
                 var width = Screen.width;
                 var height = Screen.height;
                 var longSide = Math.Max(width, height);
-                var scale = longSide > maxLongSide ? (float)maxLongSide / longSide : 1.0f;
+                var scale = longSide > maxPixels ? (float)maxPixels / longSide : 1.0f;
 
                 byte[] bytes;
                 string mimeType;
