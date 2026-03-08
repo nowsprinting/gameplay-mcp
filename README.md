@@ -1,6 +1,7 @@
 # Gameplay MCP Server for Unity
 
 [![Meta file check](https://github.com/nowsprinting/gameplay-mcp/actions/workflows/metacheck.yml/badge.svg)](https://github.com/nowsprinting/gameplay-mcp/actions/workflows/metacheck.yml)
+[![openupm](https://img.shields.io/npm/v/com.nowsprinting.gameplay-mcp?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.nowsprinting.gameplay-mcp/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nowsprinting/gameplay-mcp)
 
 Model context protocol (MCP) server for gameplay. Provides tools that AI models play your game via the MCP by embedding in your runtime (player build).
@@ -15,11 +16,12 @@ Model context protocol (MCP) server for gameplay. Provides tools that AI models 
 
 - WebGL platform is not supported.
 
-## Required Packages
+## Required
 
-- [MCP C# SDK](https://www.nuget.org/packages/ModelContextProtocol) v1.0.0 or later (NuGet)
-- [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) v1.2.2 or later (UPM)
-- [Test Helper](https://github.com/nowsprinting/test-helper) v1.4.1 or later (UPM)
+- Unity 2023.1 or newer
+- [MCP C# SDK](https://www.nuget.org/packages/ModelContextProtocol) NuGet package v1.0.0 or newer
+- [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) package v1.2.2 or newer
+- [Test Helper](https://github.com/nowsprinting/test-helper) package v1.4.1 or newer
 
 ## Getting Started
 
@@ -69,18 +71,8 @@ e.g.,
 
 Most built-in tools are wrappers of [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) APIs.
 
-> [!NOTE]
+> [!NOTE]  
 > The tool name is prefixed with the namespace; the default namespace is `mygame`, resulting in `mygame.inspect_game_object`.
-
-### inspect_game_object
-
-Inspect a GameObject by name, path, text label, or texture name and returns properties as JSON. Waits for the GameObject to appear and become reachable within a timeout period.
-
-- **path** — Hierarchy path separated by `/`. Supports glob wildcards (`?`, `*`, `**`).
-- **name** — GameObject name.
-- **text** — Text label on a Button component child. If specified, uses `ButtonMatcher`.
-- **texture** — Texture/sprite name on a Button component. If specified, uses `ButtonMatcher`.
-- **reachable** — If `true` (default), only reachable GameObjects are returned.
 
 ### list_available_actions
 
@@ -107,6 +99,16 @@ Finds a reachable GameObject and executes the specified operator on it.
   - `IToggleOperator`: `{"isOn": true}`
   - Parameters with default values (e.g., `dragSpeed`, `scrollSpeed`, `swipeSpeed`) can be omitted.
   - When a parameter type is `GameObject`, specify it as `{"name": "...", "path": "...", "text": "...", "texture": "..."}` — the tool will find and verify reachability automatically.
+
+### inspect_game_object
+
+Inspect a GameObject by name, path, text label, or texture name and returns properties as JSON. Waits for the GameObject to appear and become reachable within a timeout period.
+
+- **path** — Hierarchy path separated by `/`. Supports glob wildcards (`?`, `*`, `**`).
+- **name** — GameObject name.
+- **text** — Text label on a Button component child. If specified, uses `ButtonMatcher`.
+- **texture** — Texture/sprite name on a Button component. If specified, uses `ButtonMatcher`.
+- **reachable** — If `true` (default), only reachable GameObjects are returned.
 
 ### take_screenshot
 
@@ -168,3 +170,14 @@ When providing instructions to an AI model, consider defining the following as s
     - When the AI needs to accurately read UI text.
     - For pixel art games where compression artifacts are visible.
     - When pixel-level accuracy is required for debugging purposes (e.g., visual regression testing).
+
+## License
+
+MIT License
+
+## How to contribute
+
+Open an issue or create a pull request.
+
+Please ensure each PR has at least one appropriate label, such as `enhancement`, `bug`, `chore`, or `documentation`.
+See [PR Labeler settings](.github/pr-labeler.yml) for automatically labeling from the branch name.
