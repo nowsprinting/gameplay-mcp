@@ -71,10 +71,18 @@ namespace GameplayMcp
         public IReachableStrategy ReachableStrategy { get; set; } = new DefaultReachableStrategy();
 
         /// <summary>
+        /// Namespace prefix applied to all tool names (e.g., <c>"mygame"</c> → <c>"mygame.list_scenes"</c>).
+        /// <p/>
+        /// Defaults to <c>"mygame"</c>. Set to <c>null</c> or empty string to disable prefixing.
+        /// </summary>
+        public string ToolsNamespace { get; set; } = "mygame";
+
+        /// <summary>
         /// Tool names to hide from clients' tools/list responses.
         /// Tools in this set are still registered in ToolCollection but excluded from listing.
         /// MCP clients typically only call tools discovered via tools/list, so hiding effectively disables them.
-        /// For example, if you add a tool that returns the game state, you can use it to hide the `get_scenes` tool.
+        /// <p/>
+        /// When <see cref="ToolsNamespace"/> is set, use the full prefixed name (e.g., <c>"mygame.list_scenes"</c>).
         /// </summary>
         public HashSet<string> DisabledTools { get; } = new HashSet<string>();
     }

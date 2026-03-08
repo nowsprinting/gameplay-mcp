@@ -37,35 +37,35 @@ namespace GameplayMcp
         }
 
         [Test]
-        public async Task ListToolsAsync_ConnectToServer_ContainsGetScenesTool()
+        public async Task ListToolsAsync_ConnectToServer_ContainsListScenesTool()
         {
             await StartConnectionAsync();
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.list_scenes"));
         }
 
         [Test]
-        public async Task ListToolsAsync_DisableGetScenesTool_NotContainsGetScenesTool()
+        public async Task ListToolsAsync_DisableListScenesTool_NotContainsListScenesTool()
         {
             var config = new McpConfig();
-            config.DisabledTools.Add("get_scenes");
+            config.DisabledTools.Add("mygame.list_scenes");
             await StartConnectionAsync(config);
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "get_scenes"));
+            Assert.That(actual, Has.None.Matches<McpClientTool>(t => t.Name == "mygame.list_scenes"));
         }
 
         [Test]
-        public async Task ListToolsAsync_ConnectToServer_ContainsFindGameObjectTool()
+        public async Task ListToolsAsync_ConnectToServer_ContainsInspectGameObjectTool()
         {
             await StartConnectionAsync();
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "find_gameobject"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.inspect_game_object"));
         }
 
         [Test]
@@ -75,19 +75,52 @@ namespace GameplayMcp
 
             var actual = await _client.ListToolsAsync();
 
-            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "take_screenshot"));
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "mygame.take_screenshot"));
         }
 
         [Test]
-        public async Task CallToolAsync_GetScenes_ReturnsJsonWithActiveScene()
+        public async Task CallToolAsync_ListScenes_ReturnsJsonWithActiveScene()
         {
             await StartConnectionAsync();
 
-            var result = await _client.CallToolAsync("get_scenes", new Dictionary<string, object>());
+            var result = await _client.CallToolAsync("mygame.list_scenes", new Dictionary<string, object>());
 
             var json = result.Content.OfType<TextContentBlock>().First().Text;
             var scenes = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(json);
             Assert.That(scenes, Has.Some.Matches<System.Text.Json.JsonElement>(s => s.GetProperty("active").GetBoolean()));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_CustomToolsNamespace_ToolNamesHaveCustomPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = "custom" };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "custom.list_scenes"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_EmptyToolsNamespace_ToolNamesHaveNoPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = "" };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "list_scenes"));
+        }
+
+        [Test]
+        public async Task ListToolsAsync_NullToolsNamespace_ToolNamesHaveNoPrefix()
+        {
+            var config = new McpConfig { ToolsNamespace = null };
+            await StartConnectionAsync(config);
+
+            var actual = await _client.ListToolsAsync();
+
+            Assert.That(actual, Has.Some.Matches<McpClientTool>(t => t.Name == "list_scenes"));
         }
 
         private async Task StartConnectionAsync(McpConfig config = null)

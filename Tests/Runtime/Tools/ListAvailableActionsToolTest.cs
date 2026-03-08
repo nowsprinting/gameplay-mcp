@@ -10,11 +10,11 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
-    public class GetAvailableTargetOperatorsTest
+    public class ListAvailableActionsToolTest
     {
         [Test]
         [CreateScene]
-        public async Task GetAvailableTargetOperatorsTool_WithInteractableButton_ReturnsJsonContainingTargetAndOperators()
+        public async Task ListAvailableActions_WithInteractableButton_ReturnsJsonContainingTargetAndOperator()
         {
             var canvasGo = new GameObject("Canvas");
             canvasGo.AddComponent<Canvas>();
@@ -26,14 +26,14 @@ namespace GameplayMcp.Tools
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
-            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false, config: new McpConfig());
+            var actual = await ListAvailableActionsTool.ListAvailableActions(reachable: false, config: new McpConfig());
 
-            Assert.That(actual, Does.Contain("StartButton").And.Contain("operators"));
+            Assert.That(actual, Does.Contain("StartButton").And.Contain("\"operator\""));
         }
 
         [Test]
         [CreateScene]
-        public async Task GetAvailableTargetOperatorsTool_WithButtonHavingText_ReturnsJsonContainingText()
+        public async Task ListAvailableActions_WithButtonHavingText_ReturnsJsonContainingText()
         {
             var canvasGo = new GameObject("Canvas");
             canvasGo.AddComponent<Canvas>();
@@ -49,23 +49,23 @@ namespace GameplayMcp.Tools
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
-            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false, config: new McpConfig());
+            var actual = await ListAvailableActionsTool.ListAvailableActions(reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("Start"));
         }
 
         [Test]
         [CreateScene]
-        public async Task GetAvailableTargetOperatorsTool_NoInteractableComponents_ReturnsNoOperableMessage()
+        public async Task ListAvailableActions_NoInteractableComponents_ReturnsNoOperableMessage()
         {
-            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false, config: new McpConfig());
+            var actual = await ListAvailableActionsTool.ListAvailableActions(reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Not.StartWith("["));
         }
 
         [Test]
         [CreateScene]
-        public async Task GetAvailableTargetOperatorsTool_ReachableFalse_ReturnsAllInteractable()
+        public async Task ListAvailableActions_ReachableFalse_ReturnsAllInteractable()
         {
             var canvasGo = new GameObject("Canvas");
             canvasGo.AddComponent<Canvas>();
@@ -82,7 +82,7 @@ namespace GameplayMcp.Tools
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
 
-            var actual = await GetAvailableTargetOperators.GetAvailableTargetOperatorsTool(reachable: false, config: new McpConfig());
+            var actual = await ListAvailableActionsTool.ListAvailableActions(reachable: false, config: new McpConfig());
 
             Assert.That(actual, Does.Contain("HiddenButton"));
         }

@@ -39,7 +39,7 @@ var server = new McpServer(config);
 server.StartAsync().Forget();
 ```
 
-`McpConfig` exposes additional settings beyond `OperatorPool`, including `GameObjectFinder`, `IsInteractable`, and `ReachableStrategy`. Refer to the [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) documentation for details on these configuration options.
+`McpConfig` exposes additional settings beyond `OperatorPool`, including `GameObjectFinder`, `IsInteractable`, `ReachableStrategy`, and `ToolsNamespace`. Refer to the [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) documentation for details on the UI-related configuration options.
 
 > [!TIP]  
 > You can override the listen prefix via the `-gameplayMcpListenPrefix` command-line argument. Note that if `ListenPrefix` is set in `McpConfig`, it takes precedence over the command-line argument.
@@ -69,9 +69,12 @@ e.g.,
 
 Most built-in tools are wrappers of [UI Test Helper](https://github.com/nowsprinting/test-helper.ui) APIs.
 
-### find_gameobject
+> [!NOTE]
+> The tool name is prefixed with the namespace; the default namespace is `mygame`, resulting in `mygame.inspect_game_object`.
 
-Finds a GameObject by name, path, text label, or texture and returns its component properties as JSON.
+### inspect_game_object
+
+Inspect a GameObject by name, path, text label, or texture name and returns properties as JSON. Waits for the GameObject to appear and become reachable within a timeout period.
 
 - **path** — Hierarchy path separated by `/`. Supports glob wildcards (`?`, `*`, `**`).
 - **name** — GameObject name.
@@ -79,13 +82,13 @@ Finds a GameObject by name, path, text label, or texture and returns its compone
 - **texture** — Texture/sprite name on a Button component. If specified, uses `ButtonMatcher`.
 - **reachable** — If `true` (default), only reachable GameObjects are returned.
 
-### get_available_target_operators
+### list_available_actions
 
-Returns a list of operable GameObjects and their available operators as JSON. Each entry includes the target's name, hierarchy path, and the list of operator class names that can operate on it. For Button components, the text label and texture name are also included.
+Returns a list of operable actions as a JSON array. Each entry contains a target GameObject and the operator class name that can act on it. For Button components, the text label and texture name are also included in the target.
 
 - **reachable** — If `true` (default), only reachable GameObjects are included.
 
-### operate
+### invoke_action
 
 Finds a reachable GameObject and executes the specified operator on it.
 
@@ -109,11 +112,11 @@ Finds a reachable GameObject and executes the specified operator on it.
 
 Captures the current game screen and returns it as an image.
 
-- **maxLongSide** — Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to `1568`.
+- **maxPixels** — Maximum length of the long side in pixels. The image is scaled down if it exceeds this value. Defaults to `1568`.
 - **format** — Image format: `"jpeg"` (default) or `"png"`.
 - **quality** — JPEG encoding quality (1–100). Only used when `format` is `"jpeg"`. Defaults to `75`.
 
-### get_scenes
+### list_scenes
 
 Returns the currently loaded scenes as JSON. The active scene is marked with `active=true`.
 
@@ -146,7 +149,7 @@ If a custom tool covers the same use case as a built-in tool, you can hide the b
 
 ```csharp
 var config = new McpConfig();
-config.DisabledTools.Add("find_gameobject"); // optional: hide a specific built-in tool
+config.DisabledTools.Add("mygame.inspect_game_object"); // use the full prefixed name
 ```
 
 Hidden tools are excluded from `tools/list` responses. MCP clients typically only call tools they discover via `tools/list`, so this effectively disables them.

@@ -9,13 +9,13 @@ using TestHelper.Attributes;
 namespace GameplayMcp.Tools
 {
     [TestFixture]
-    public class GetScenesTest
+    public class ListScenesToolTest
     {
         [Test]
         [CreateScene]
-        public async Task GetScenesTool_DefaultScene_ReturnsJsonWithSceneName()
+        public async Task ListScenes_DefaultScene_ReturnsJsonWithSceneName()
         {
-            var actual = await GetScenes.GetScenesTool();
+            var actual = await ListScenesTool.ListScenes();
 
             var scenes = JsonSerializer.Deserialize<JsonElement[]>(actual);
             Assert.That(scenes, Is.Not.Empty);
@@ -24,9 +24,9 @@ namespace GameplayMcp.Tools
 
         [Test]
         [CreateScene]
-        public async Task GetScenesTool_DefaultScene_ActiveIsTrue()
+        public async Task ListScenes_DefaultScene_ActiveIsTrue()
         {
-            var actual = await GetScenes.GetScenesTool();
+            var actual = await ListScenesTool.ListScenes();
 
             var scenes = JsonSerializer.Deserialize<JsonElement[]>(actual);
             Assert.That(scenes, Has.Some.Matches<JsonElement>(s => s.GetProperty("active").GetBoolean()));

@@ -18,21 +18,21 @@ using UnityEngine.UI;
 namespace GameplayMcp.Tools
 {
     /// <summary>
-    /// MCP tool that returns a list of operable GameObjects and their operators as JSON.
+    /// MCP tool that returns a list of operable actions (target and operator pairs) as JSON.
     /// </summary>
     [McpServerToolType]
-    public static class GetAvailableTargetOperators
+    public static class ListAvailableActionsTool
     {
         /// <summary>
-        /// Returns a list of operable GameObjects and their available operators as JSON.
+        /// Returns a list of operable actions as a JSON array. Each entry contains a target GameObject and the operator that can act on it.
         /// </summary>
         /// <param name="reachable">If true (default), only reachable GameObjects are included.</param>
         /// <param name="config">Configuration injected via DI.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>JSON string with operable targets and their operators, or a message if none are found.</returns>
-        [McpServerTool(Name = "get_available_target_operators", ReadOnly = true, Destructive = false)]
-        [Description("Returns a list of operable GameObjects and their available operators as JSON.")]
-        public static async Task<string> GetAvailableTargetOperatorsTool(
+        /// <returns>JSON array of action entries, or a message if none are found.</returns>
+        [McpServerTool(Name = "list_available_actions", ReadOnly = true, Destructive = false)]
+        [Description("Returns a list of operable actions as a JSON array. Each entry contains a target GameObject and the operator that can act on it.")]
+        public static async Task<string> ListAvailableActions(
             [Description("If true (default), only reachable GameObjects are included.")]
             bool reachable = true,
             McpConfig config = null, // Injected via IServiceProvider; default null is never used at runtime
@@ -52,8 +52,7 @@ namespace GameplayMcp.Tools
                 }
 
                 var entries = filteredPairs
-                    .GroupBy(pair => pair.Item1.gameObject)
-                    .Select(group => BuildEntry(group.Key, group.Select(p => p.Item2)))
+                    .Select(pair => BuildEntry(pair.Item1.gameObject, pair.Item2))
                     .ToList();
 
                 if (entries.Count == 0)
@@ -69,7 +68,7 @@ namespace GameplayMcp.Tools
             }
         }
 
-        private static Dictionary<string, object> BuildEntry(GameObject go, IEnumerable<IOperator> operators)
+        private static Dictionary<string, object> BuildEntry(GameObject go, IOperator op)
         {
             var target = new Dictionary<string, object>
             {
@@ -96,7 +95,7 @@ namespace GameplayMcp.Tools
             return new Dictionary<string, object>
             {
                 ["target"] = target,
-                ["operators"] = operators.Select(op => op.GetType().Name).Distinct().ToArray(),
+                ["operator"] = op.GetType().Name,
             };
         }
     }

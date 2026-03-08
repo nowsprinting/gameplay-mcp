@@ -49,7 +49,7 @@ namespace GameplayMcp.Tools
         [GameViewResolution(GameViewResolution.FullHD)]
         public async Task TakeScreenshotTool_LongSideExceedsMax_ReturnsDownscaledImage()
         {
-            var actual = await TakeScreenshot.TakeScreenshotTool(format: "png", maxLongSide: 800);
+            var actual = await TakeScreenshot.TakeScreenshotTool(format: "png", maxPixels: 800);
 
             var imageBlock = (ImageContentBlock)actual;
             var tex = new Texture2D(1, 1);
@@ -63,7 +63,7 @@ namespace GameplayMcp.Tools
         [GameViewResolution(GameViewResolution.VGA)]
         public async Task TakeScreenshotTool_LongSideBelowMax_ReturnsOriginalSizeImage()
         {
-            var actual = await TakeScreenshot.TakeScreenshotTool(format: "png", maxLongSide: 1568);
+            var actual = await TakeScreenshot.TakeScreenshotTool(format: "png", maxPixels: 1568);
 
             var imageBlock = (ImageContentBlock)actual;
             var tex = new Texture2D(1, 1);
