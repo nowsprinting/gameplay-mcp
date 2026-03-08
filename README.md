@@ -179,5 +179,5 @@ MIT License
 
 Open an issue or create a pull request.
 
-Be grateful if you could label the PR as `enhancement`, `bug`, `chore`, and `documentation`.
+Please ensure each PR has at least one appropriate label, such as `enhancement`, `bug`, `chore`, or `documentation`.
 See [PR Labeler settings](.github/pr-labeler.yml) for automatically labeling from the branch name.
