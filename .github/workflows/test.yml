@@ -41,9 +41,9 @@ jobs:
       fail-fast: false
       matrix:
         unityVersion: # Available versions see: https://game.ci/docs/docker/versions
-          - 6000.0.75f1
-          - 6000.3.16f1
-          - &latest_unity_version 6000.4.8f1
+          - 6000.0.77f1
+          - 6000.3.18f1
+          - &latest_unity_version 6000.5.0f1
         testMode:
           - All # run tests in editor
         include:
