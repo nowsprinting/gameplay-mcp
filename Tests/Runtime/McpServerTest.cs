@@ -17,7 +17,9 @@ namespace GameplayMcp
     /// </summary>
     [TestFixture]
     [Timeout(5000)]
+    // Not disposing before re-assigning: TearDown disposes and nulls _server after every test, so it is always null here.
     [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP003:Dispose previous before re-assigning")]
+    // Not implementing IDisposable: NUnit never calls Dispose between tests, so TearDown owns the disposal instead.
     [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP006:Implement IDisposable")]
     public class McpServerTest
     {
@@ -157,8 +159,8 @@ namespace GameplayMcp
 
         private static async Task<McpClient> ConnectAsync()
         {
-            Exception lastException = null;
-            for (var i = 0; i < RetryCount; i++)
+            var attempt = 0;
+            while (true)
             {
                 try
                 {
@@ -170,14 +172,11 @@ namespace GameplayMcp
                     var transport = new HttpClientTransport(options);
                     return await McpClient.CreateAsync(transport);
                 }
-                catch (Exception e)
+                catch (Exception) when (++attempt < RetryCount)
                 {
-                    lastException = e;
                     await Task.Delay(RetryDelayMilliseconds);
                 }
             }
-
-            throw lastException ?? new InvalidOperationException("Failed to connect to MCP server.");
         }
     }
 }
