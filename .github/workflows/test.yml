@@ -41,9 +41,9 @@ jobs:
       fail-fast: false
       matrix:
         unityVersion: # Available versions see: https://game.ci/docs/docker/versions
-          - 6000.0.75f1
-          - 6000.3.16f1
-          - &latest_unity_version 6000.4.8f1
+          - 6000.0.77f1
+          - 6000.3.18f1
+          - &latest_unity_version 6000.5.0f1
         testMode:
           - All # run tests in editor
         include:
@@ -93,9 +93,10 @@ jobs:
       - name: Install dependent UPM packages
         run: |
           npm install -g openupm-cli
+          openupm add -f com.cysharp.unitask
           openupm add -f com.nowsprinting.test-helper
           openupm add -f com.nowsprinting.test-helper.ui
-          openupm add -f org.nuget.microsoft.extensions.dependencyinjection
+          openupm add -f org.nuget.microsoft.extensions.dependencyinjection@8.0.0
           openupm add -f org.nuget.modelcontextprotocol
         working-directory: ${{ env.CREATED_PROJECT_PATH }}
 
