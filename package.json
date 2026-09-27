@@ -7,7 +7,7 @@
   "changelogUrl": "https://github.com/nowsprinting/gameplay-mcp/releases",
   "dependencies": {
     "com.nowsprinting.test-helper": "1.4.1",
-    "com.nowsprinting.test-helper.ui": "1.2.2"
+    "com.nowsprinting.test-helper.ui": "1.5.0"
   },
   "displayName": "Gameplay MCP",
   "documentationUrl": "https://nowsprinting.github.io/gameplay-mcp/",
