@@ -8,6 +8,7 @@ using TestHelper.UI.Operators;
 using TestHelper.UI.Visualizers;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Scripting;
 
 namespace GameplayMcp.TestDoubles
 {
@@ -17,6 +18,12 @@ namespace GameplayMcp.TestDoubles
     /// </summary>
     internal class SpyOperatorWithoutOverload : IClickOperator
     {
+        /// <summary>
+        /// Creates an instance; <c>OperatorPool</c> rents operators via this constructor.
+        /// </summary>
+        [Preserve]
+        public SpyOperatorWithoutOverload() { }
+
         /// <summary>
         /// Whether CanOperate returns true or false.
         /// </summary>
